@@ -1,0 +1,714 @@
+/* =========================================
+   PROJECTS PAGE
+========================================= */
+
+.projects-page {
+  width: 100%;
+  min-height: 100%;
+}
+
+
+/* =========================================
+   PAGE HEADER
+========================================= */
+
+.projects-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: var(--spacing-xl);
+
+  margin-bottom: 26px;
+}
+
+
+.projects-header h2 {
+  margin: 0;
+
+  font-size: 28px;
+  font-weight: 700;
+
+  color: var(--color-text-primary);
+}
+
+
+.projects-header p {
+  margin: 6px 0 0;
+
+  font-size: 14px;
+
+  color: var(--color-text-muted);
+}
+
+
+/* =========================================
+   ADD PROJECT BUTTON
+========================================= */
+
+.add-project-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: var(--spacing-sm);
+
+  border: none;
+
+  padding:
+    11px
+    18px;
+
+  border-radius: var(--radius-md);
+
+  background:
+    var(--color-primary);
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 6px 18px
+    rgba(
+      139,
+      92,
+      246,
+      0.25
+    );
+
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+
+.add-project-button:hover {
+  background:
+    var(--color-primary-hover);
+
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 8px 22px
+    rgba(
+      139,
+      92,
+      246,
+      0.35
+    );
+}
+
+
+/* =========================================
+   PROJECT CONTROLS
+========================================= */
+
+.projects-controls {
+  display: flex;
+  align-items: center;
+
+  gap: var(--spacing-md);
+
+  margin-bottom:
+    var(--spacing-xl);
+}
+
+
+/* =========================================
+   SEARCH
+========================================= */
+
+.project-search {
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  max-width: 420px;
+
+  padding:
+    11px
+    14px;
+
+  border:
+    1px solid var(--color-border);
+
+  border-radius:
+    var(--radius-md);
+
+  background:
+    var(--color-input);
+
+  color:
+    var(--color-text-muted);
+
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+
+.project-search:focus-within {
+  border-color:
+    var(--color-primary);
+
+  box-shadow:
+    0
+    0
+    0
+    3px
+    var(--color-primary-soft);
+}
+
+
+.project-search input {
+  width: 100%;
+
+  border: none;
+  outline: none;
+
+  background:
+    transparent;
+
+  font-size: 14px;
+
+  color:
+    var(--color-text-primary);
+}
+
+
+.project-search input::placeholder {
+  color:
+    var(--color-text-muted);
+}
+
+
+/* =========================================
+   REFRESH BUTTON
+========================================= */
+
+.refresh-projects-button {
+  display: flex;
+  align-items: center;
+
+  gap: var(--spacing-sm);
+
+  padding:
+    11px
+    16px;
+
+  border:
+    1px solid var(--color-border);
+
+  border-radius:
+    var(--radius-md);
+
+  background:
+    var(--color-card);
+
+  color:
+    var(--color-text-secondary);
+
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+
+.refresh-projects-button:hover {
+  background:
+    var(--color-card-hover);
+
+  border-color:
+    var(--color-primary);
+
+  color:
+    var(--color-text-primary);
+}
+
+
+/* =========================================
+   PROJECT TABLE WRAPPER
+========================================= */
+
+.projects-table-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+
+  border:
+    1px solid var(--color-border);
+
+  border-radius:
+    var(--radius-lg);
+
+  background:
+    var(--color-card);
+
+  box-shadow:
+    var(--shadow-md);
+}
+
+
+/* =========================================
+   PROJECT TABLE
+========================================= */
+
+.projects-table {
+  width: 100%;
+
+  min-width: 1100px;
+
+  border-collapse:
+    collapse;
+}
+
+
+.projects-table th {
+  padding:
+    16px
+    18px;
+
+  background:
+    var(--color-table-header);
+
+  border-bottom:
+    1px solid var(--color-border);
+
+  text-align: left;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  color:
+    var(--color-text-muted);
+
+  text-transform:
+    uppercase;
+
+  letter-spacing:
+    0.4px;
+
+  white-space:
+    nowrap;
+}
+
+
+.projects-table td {
+  padding:
+    17px
+    18px;
+
+  border-bottom:
+    1px solid var(--color-border-light);
+
+  font-size: 14px;
+
+  color:
+    var(--color-text-secondary);
+
+  vertical-align:
+    middle;
+}
+
+
+.projects-table tbody tr {
+  transition:
+    background var(--transition-fast);
+}
+
+
+.projects-table tbody tr:hover {
+  background:
+    var(--color-card-hover);
+}
+
+
+.projects-table tbody tr:last-child td {
+  border-bottom:
+    none;
+}
+
+
+/* =========================================
+   PROJECT NAME
+========================================= */
+
+.project-name-button {
+  border: none;
+
+  background:
+    transparent;
+
+  padding: 0;
+
+  color:
+    var(--color-text-primary);
+
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  text-align:
+    left;
+
+  transition:
+    color var(--transition-fast);
+}
+
+
+.project-name-button:hover {
+  color:
+    var(--color-primary-light);
+}
+
+
+.project-id {
+  display: block;
+
+  margin-top: 5px;
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 12px;
+}
+
+
+/* =========================================
+   STATUS BADGES
+========================================= */
+
+.project-status {
+  display: inline-flex;
+  align-items: center;
+
+  padding:
+    5px
+    10px;
+
+  border-radius:
+    var(--radius-full);
+
+  font-size: 12px;
+  font-weight: 600;
+
+  border:
+    1px solid transparent;
+}
+
+
+/* PLANNED */
+
+.status-planned {
+  background:
+    var(--color-info-soft);
+
+  color:
+    var(--color-info);
+
+  border-color:
+    rgba(
+      59,
+      130,
+      246,
+      0.25
+    );
+}
+
+
+/* ONGOING */
+
+.status-ongoing {
+  background:
+    var(--color-warning-soft);
+
+  color:
+    var(--color-warning);
+
+  border-color:
+    rgba(
+      245,
+      158,
+      11,
+      0.25
+    );
+}
+
+
+/* DELAYED */
+
+.status-delayed {
+  background:
+    var(--color-danger-soft);
+
+  color:
+    var(--color-danger);
+
+  border-color:
+    rgba(
+      239,
+      68,
+      68,
+      0.25
+    );
+}
+
+
+/* COMPLETED */
+
+.status-completed {
+  background:
+    var(--color-success-soft);
+
+  color:
+    var(--color-success);
+
+  border-color:
+    rgba(
+      34,
+      197,
+      94,
+      0.25
+    );
+}
+
+
+/* STALLED */
+
+.status-stalled {
+  background:
+    rgba(
+      148,
+      163,
+      184,
+      0.12
+    );
+
+  color:
+    var(--color-text-secondary);
+
+  border-color:
+    var(--color-border);
+}
+
+
+/* =========================================
+   PROGRESS
+========================================= */
+
+.project-progress {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  min-width: 140px;
+}
+
+
+.project-progress-bar {
+  flex: 1;
+
+  height: 7px;
+
+  overflow: hidden;
+
+  border-radius:
+    var(--radius-full);
+
+  background:
+    var(--color-border);
+}
+
+
+.project-progress-fill {
+  height: 100%;
+
+  border-radius:
+    inherit;
+
+  background:
+    var(--color-primary);
+
+  transition:
+    width var(--transition-normal);
+}
+
+
+.project-progress span {
+  min-width: 38px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  color:
+    var(--color-text-secondary);
+}
+
+
+/* =========================================
+   EMPTY STATE
+========================================= */
+
+.empty-projects {
+  padding:
+    60px !important;
+
+  text-align:
+    center;
+
+  color:
+    var(--color-text-muted);
+}
+
+
+/* =========================================
+   LOADING / ERROR STATES
+========================================= */
+
+.projects-message {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  min-height: 250px;
+
+  gap: var(--spacing-md);
+
+  color:
+    var(--color-text-muted);
+
+  font-size: 15px;
+}
+
+
+.projects-message.error {
+  color:
+    var(--color-danger);
+}
+
+
+.projects-message button {
+  padding:
+    9px
+    16px;
+
+  border: none;
+
+  border-radius:
+    var(--radius-md);
+
+  background:
+    var(--color-primary);
+
+  color:
+    #ffffff;
+
+  cursor:
+    pointer;
+
+  font-size:
+    13px;
+
+  font-weight:
+    600;
+
+  transition:
+    background var(--transition-fast);
+}
+
+
+.projects-message button:hover {
+  background:
+    var(--color-primary-hover);
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (
+  max-width: 768px
+) {
+
+  .projects-header {
+    flex-direction:
+      column;
+
+    align-items:
+      flex-start;
+  }
+
+
+  .projects-controls {
+    flex-direction:
+      column;
+
+    align-items:
+      stretch;
+  }
+
+
+  .project-search {
+    max-width:
+      none;
+  }
+
+
+  .refresh-projects-button {
+    justify-content:
+      center;
+  }
+
+
+  .add-project-button {
+    width:
+      100%;
+  }
+
+}
+
+
+.project-row {
+  cursor: pointer;
+}
+
+.project-row:hover {
+  background:
+    var(--color-card-hover);
+}
+
+.project-name-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.project-name-cell strong {
+  color:
+    var(--color-text-primary);
+
+  font-size: 14px;
+
+  font-weight: 700;
+}

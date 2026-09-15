@@ -1,0 +1,287 @@
+:root {
+
+  /* =========================================
+     NEEVAI DESIGN SYSTEM
+     MATCHED DARK NAVY + INDIGO THEME
+  ========================================= */
+
+
+  /* =====================
+     PRIMARY COLORS
+  ===================== */
+
+  --color-primary: #6558D3;
+
+  --color-primary-hover: #7468E8;
+
+  --color-primary-light: #9188F2;
+
+  --color-primary-soft:
+    rgba(101, 88, 211, 0.16);
+
+
+  /* =====================
+     BACKGROUND COLORS
+  ===================== */
+
+  /* Main application background */
+
+  --color-app-background: #091321;
+
+
+  /* Sidebar */
+
+  --color-sidebar: #0B1626;
+
+  --color-sidebar-hover: #13233A;
+
+
+  /* Cards / Panels */
+
+  --color-card: #0D1A2B;
+
+  --color-card-hover: #122238;
+
+
+  /* Inputs */
+
+  --color-input: #091625;
+
+
+  /* Table Header */
+
+  --color-table-header: #101E33;
+
+
+  /* =====================
+     BORDER COLORS
+  ===================== */
+
+  --color-border:
+    rgba(
+      86,
+      112,
+      150,
+      0.28
+    );
+
+
+  --color-border-light:
+    rgba(
+      86,
+      112,
+      150,
+      0.16
+    );
+
+
+  /* =====================
+     TEXT COLORS
+  ===================== */
+
+  --color-text-primary: #E6EAF0;
+
+  --color-text-secondary: #A6B0C0;
+
+  --color-text-muted: #718096;
+
+  --color-text-disabled: #4B5568;
+
+
+  /* =====================
+     STATUS COLORS
+  ===================== */
+
+  --color-success: #32B67A;
+
+  --color-success-soft:
+    rgba(
+      50,
+      182,
+      122,
+      0.14
+    );
+
+
+  --color-warning: #DFA84A;
+
+  --color-warning-soft:
+    rgba(
+      223,
+      168,
+      74,
+      0.14
+    );
+
+
+  --color-danger: #E0626B;
+
+  --color-danger-soft:
+    rgba(
+      224,
+      98,
+      107,
+      0.14
+    );
+
+
+  --color-info: #4F8FD9;
+
+  --color-info-soft:
+    rgba(
+      79,
+      143,
+      217,
+      0.14
+    );
+
+
+  /* =====================
+     FIXED UI VALUES
+  ===================== */
+
+  --sidebar-width: 260px;
+
+  --topbar-height: 72px;
+
+  --page-max-width: 1600px;
+
+
+  /* =====================
+     SPACING
+  ===================== */
+
+  --spacing-xs: 4px;
+
+  --spacing-sm: 8px;
+
+  --spacing-md: 12px;
+
+  --spacing-lg: 16px;
+
+  --spacing-xl: 24px;
+
+  --spacing-2xl: 32px;
+
+  --spacing-3xl: 40px;
+
+
+  /* =====================
+     BORDER RADIUS
+  ===================== */
+
+  --radius-sm: 6px;
+
+  --radius-md: 10px;
+
+  --radius-lg: 14px;
+
+  --radius-xl: 18px;
+
+  --radius-full: 999px;
+
+
+  /* =====================
+     SHADOWS
+  ===================== */
+
+  --shadow-sm:
+    0 2px 6px
+    rgba(
+      0,
+      0,
+      0,
+      0.22
+    );
+
+
+  --shadow-md:
+    0 8px 20px
+    rgba(
+      0,
+      0,
+      0,
+      0.28
+    );
+
+
+  --shadow-lg:
+    0 16px 40px
+    rgba(
+      0,
+      0,
+      0,
+      0.38
+    );
+
+
+  /* =====================
+     TRANSITIONS
+  ===================== */
+
+  --transition-fast:
+    0.15s ease;
+
+  --transition-normal:
+    0.25s ease;
+
+  --transition-slow:
+    0.4s ease;
+
+
+  /* =====================
+     Z-INDEX
+  ===================== */
+
+  --z-sidebar: 100;
+
+  --z-header: 200;
+
+  --z-modal: 500;
+
+  --z-tooltip: 1000;
+
+
+  /* =========================================
+     COMPATIBILITY VARIABLES
+     For existing component CSS
+  ========================================= */
+
+  --text-primary:
+    var(--color-text-primary);
+
+  --text-secondary:
+    var(--color-text-secondary);
+
+  --text-muted:
+    var(--color-text-muted);
+
+
+  --accent-primary:
+    var(--color-primary);
+
+  --accent-primary-hover:
+    var(--color-primary-hover);
+
+
+  --border-color:
+    var(--color-border);
+
+
+  --bg-primary:
+    var(--color-app-background);
+
+  --bg-secondary:
+    var(--color-card);
+
+  --bg-tertiary:
+    var(--color-table-header);
+
+  --bg-hover:
+    var(--color-card-hover);
+
+
+  --progress-track:
+    #22324B;
+
+}

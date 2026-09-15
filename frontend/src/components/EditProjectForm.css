@@ -1,0 +1,497 @@
+/* =========================================
+   EDIT PROJECT PAGE
+========================================= */
+
+.edit-project-page {
+  width: 100%;
+  max-width: 1200px;
+
+  margin: 0 auto;
+
+  color: var(--color-text-primary);
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.edit-project-header {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: var(--spacing-xl);
+
+  margin-bottom: var(--spacing-xl);
+}
+
+
+.edit-project-header h1 {
+  margin: 0;
+
+  font-size: 30px;
+  font-weight: 700;
+
+  color: var(--color-text-primary);
+}
+
+
+.edit-project-header p {
+  margin: var(--spacing-sm) 0 0;
+
+  font-size: 14px;
+
+  color: var(--color-text-secondary);
+}
+
+
+/* =========================================
+   FORM
+========================================= */
+
+.edit-project-form {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: var(--spacing-xl);
+}
+
+
+/* =========================================
+   FORM CARD
+========================================= */
+
+.edit-form-card {
+  background: var(--color-card);
+
+  border:
+    1px solid var(--color-border);
+
+  border-radius: var(--radius-lg);
+
+  padding: var(--spacing-xl);
+
+  box-shadow: var(--shadow-md);
+}
+
+
+.edit-form-card h2 {
+  margin:
+    0
+    0
+    var(--spacing-xl);
+
+  font-size: 18px;
+
+  font-weight: 700;
+
+  color: var(--color-text-primary);
+}
+
+
+/* =========================================
+   FORM GRID
+========================================= */
+
+.edit-form-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 20px;
+}
+
+
+/* =========================================
+   FULL WIDTH FIELD
+========================================= */
+
+.edit-form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+
+/* =========================================
+   FORM GROUP
+========================================= */
+
+.edit-form-group {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: var(--spacing-sm);
+}
+
+
+.edit-form-group label {
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: var(--color-text-secondary);
+}
+
+
+/* =========================================
+   INPUTS
+========================================= */
+
+.edit-form-group input,
+.edit-form-group select,
+.edit-form-group textarea {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  padding: 12px 14px;
+
+  font-size: 14px;
+
+  font-family: inherit;
+
+  color: var(--color-text-primary);
+
+  background: var(--color-input);
+
+  border:
+    1px solid var(--color-border);
+
+  border-radius: var(--radius-md);
+
+  outline: none;
+
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background var(--transition-fast);
+}
+
+
+.edit-form-group input::placeholder,
+.edit-form-group textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+
+/* =========================================
+   SELECT
+========================================= */
+
+.edit-form-group select {
+  cursor: pointer;
+
+  color: var(--color-text-primary);
+}
+
+
+.edit-form-group option {
+  background: var(--color-card);
+
+  color: var(--color-text-primary);
+}
+
+
+/* =========================================
+   FOCUS
+========================================= */
+
+.edit-form-group input:focus,
+.edit-form-group select:focus,
+.edit-form-group textarea:focus {
+  border-color: var(--color-primary);
+
+  box-shadow:
+    0
+    0
+    0
+    3px
+    var(--color-primary-soft);
+
+  background: var(--color-input);
+}
+
+
+/* =========================================
+   DISABLED PROJECT ID
+========================================= */
+
+.edit-form-group input:disabled {
+  background: var(--color-table-header);
+
+  color: var(--color-text-muted);
+
+  border-color:
+    var(--color-border-light);
+
+  cursor: not-allowed;
+
+  opacity: 0.8;
+}
+
+
+/* =========================================
+   TEXTAREA
+========================================= */
+
+.edit-form-group textarea {
+  resize: vertical;
+
+  min-height: 110px;
+}
+
+
+/* =========================================
+   ACTION BUTTONS
+========================================= */
+
+.edit-form-actions {
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: var(--spacing-md);
+
+  padding-top: var(--spacing-xl);
+}
+
+
+/* =========================================
+   CANCEL BUTTON
+========================================= */
+
+.edit-cancel-button {
+  padding:
+    11px
+    20px;
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  border:
+    1px solid var(--color-border);
+
+  border-radius: var(--radius-md);
+
+  background: transparent;
+
+  color: var(--color-text-secondary);
+
+  cursor: pointer;
+
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+
+.edit-cancel-button:hover:not(:disabled) {
+  background: var(--color-sidebar-hover);
+
+  border-color:
+    var(--color-primary);
+
+  color: var(--color-text-primary);
+}
+
+
+/* =========================================
+   SAVE BUTTON
+========================================= */
+
+.save-project-button {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: var(--spacing-sm);
+
+  padding:
+    11px
+    22px;
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  border: none;
+
+  border-radius: var(--radius-md);
+
+  background: var(--color-primary);
+
+  color: #ffffff;
+
+  cursor: pointer;
+
+  box-shadow:
+    0
+    6px
+    18px
+    rgba(
+      139,
+      92,
+      246,
+      0.25
+    );
+
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+
+.save-project-button:hover:not(:disabled) {
+  background:
+    var(--color-primary-hover);
+
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0
+    8px
+    22px
+    rgba(
+      139,
+      92,
+      246,
+      0.35
+    );
+}
+
+
+/* =========================================
+   DISABLED
+========================================= */
+
+.save-project-button:disabled,
+.edit-cancel-button:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* =========================================
+   SUCCESS MESSAGE
+========================================= */
+
+.edit-success-message {
+  padding:
+    14px
+    16px;
+
+  border-radius: var(--radius-md);
+
+  background:
+    var(--color-success-soft);
+
+  border:
+    1px solid
+    rgba(
+      34,
+      197,
+      94,
+      0.35
+    );
+
+  color:
+    var(--color-success);
+
+  font-size: 14px;
+
+  font-weight: 500;
+}
+
+
+/* =========================================
+   ERROR MESSAGE
+========================================= */
+
+.edit-error-message {
+  padding:
+    14px
+    16px;
+
+  border-radius: var(--radius-md);
+
+  background:
+    var(--color-danger-soft);
+
+  border:
+    1px solid
+    rgba(
+      239,
+      68,
+      68,
+      0.35
+    );
+
+  color:
+    var(--color-danger);
+
+  font-size: 14px;
+
+  font-weight: 500;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (
+  max-width: 768px
+) {
+
+  .edit-project-header {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+
+  .edit-project-header h1 {
+    font-size: 25px;
+  }
+
+
+  .edit-form-card {
+    padding:
+      var(--spacing-lg);
+  }
+
+
+  .edit-form-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .edit-form-group.full-width {
+    grid-column: auto;
+  }
+
+
+  .edit-form-actions {
+    flex-direction:
+      column-reverse;
+  }
+
+
+  .edit-form-actions button {
+    width: 100%;
+  }
+
+}
