@@ -1,0 +1,594 @@
+/* =========================================
+   ADD PROJECT PAGE
+========================================= */
+
+.add-project-page {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+
+  padding-bottom: 40px;
+}
+
+
+/* =========================================
+   PAGE HEADER
+========================================= */
+
+.add-project-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 24px;
+
+  margin-bottom: 28px;
+}
+
+
+.add-project-header h2 {
+  margin: 0;
+
+  font-size: 28px;
+  font-weight: 700;
+
+  color: var(--color-text-primary);
+}
+
+
+.add-project-header p {
+  margin: 8px 0 0;
+
+  font-size: 14px;
+
+  color: var(--color-text-secondary);
+
+  line-height: 1.6;
+}
+
+
+/* =========================================
+   BACK BUTTON
+========================================= */
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid var(--color-border);
+
+  background: transparent;
+
+  color: var(--color-text-secondary);
+
+  padding: 10px 16px;
+
+  border-radius: var(--radius-md);
+
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+
+.back-button:hover {
+  background: var(--color-sidebar-hover);
+
+  border-color: var(--color-primary);
+
+  color: var(--color-text-primary);
+}
+
+
+/* =========================================
+   FORM CARD
+========================================= */
+
+.add-project-form {
+  background: var(--color-card);
+
+  border: 1px solid var(--color-border);
+
+  border-radius: var(--radius-xl);
+
+  padding: 32px;
+
+  box-shadow: var(--shadow-md);
+}
+
+
+/* =========================================
+   FORM SECTION
+========================================= */
+
+.form-section {
+  padding-bottom: 30px;
+
+  margin-bottom: 30px;
+
+  border-bottom:
+    1px solid var(--color-border-light);
+}
+
+
+.form-section:last-of-type {
+  margin-bottom: 0;
+
+  padding-bottom: 0;
+
+  border-bottom: none;
+}
+
+
+.form-section h3 {
+  margin: 0 0 6px;
+
+  font-size: 17px;
+  font-weight: 650;
+
+  color: var(--color-text-primary);
+}
+
+
+.form-section-description {
+  margin: 0 0 22px;
+
+  font-size: 13px;
+
+  color: var(--color-text-secondary);
+
+  line-height: 1.6;
+}
+
+
+/* =========================================
+   FORM GRID
+========================================= */
+
+.form-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 20px;
+}
+
+
+/* =========================================
+   FORM FIELD
+========================================= */
+
+.form-field {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+
+  min-width: 0;
+}
+
+
+.form-field.full-width {
+  grid-column: 1 / -1;
+}
+
+
+/* =========================================
+   LABEL
+========================================= */
+
+.form-field label {
+  font-size: 13px;
+
+  font-weight: 600;
+
+  color: var(--color-text-primary);
+}
+
+
+/* =========================================
+   INPUTS
+========================================= */
+
+.form-field input,
+.form-field textarea,
+.form-field select {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  border:
+    1px solid var(--color-border);
+
+  border-radius: var(--radius-md);
+
+  padding: 12px 14px;
+
+  background: var(--color-input);
+
+  color: var(--color-text-primary);
+
+  font-size: 14px;
+
+  font-family: inherit;
+
+  outline: none;
+
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background var(--transition-fast);
+}
+
+
+/* PLACEHOLDER */
+
+.form-field input::placeholder,
+.form-field textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+
+/* INPUT HOVER */
+
+.form-field input:hover,
+.form-field textarea:hover,
+.form-field select:hover {
+  border-color:
+    rgba(167, 139, 250, 0.45);
+}
+
+
+/* INPUT FOCUS */
+
+.form-field input:focus,
+.form-field textarea:focus,
+.form-field select:focus {
+  border-color: var(--color-primary);
+
+  box-shadow:
+    0 0 0 3px
+    var(--color-primary-soft);
+}
+
+
+/* =========================================
+   TEXTAREA
+========================================= */
+
+.form-field textarea {
+  min-height: 120px;
+
+  resize: vertical;
+
+  line-height: 1.6;
+}
+
+
+/* =========================================
+   SELECT
+========================================= */
+
+.form-field select {
+  cursor: pointer;
+
+  appearance: auto;
+}
+
+
+.form-field select option {
+  background: #0F172A;
+
+  color: var(--color-text-primary);
+}
+
+
+/* =========================================
+   NUMBER INPUT
+========================================= */
+
+.form-field input[type="number"] {
+  appearance: textfield;
+}
+
+
+/* =========================================
+   FORM ACTIONS
+========================================= */
+
+.form-actions {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: flex-end;
+
+  gap: 12px;
+
+  margin-top: 32px;
+
+  padding-top: 24px;
+
+  border-top:
+    1px solid var(--color-border-light);
+}
+
+
+/* =========================================
+   CANCEL BUTTON
+========================================= */
+
+.cancel-button {
+  border:
+    1px solid var(--color-border);
+
+  background:
+    transparent;
+
+  color:
+    var(--color-text-secondary);
+
+  padding:
+    11px 20px;
+
+  border-radius:
+    var(--radius-md);
+
+  font-size:
+    14px;
+
+  font-weight:
+    600;
+
+  cursor:
+    pointer;
+
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+
+.cancel-button:hover {
+  background:
+    var(--color-sidebar-hover);
+
+  border-color:
+    rgba(167, 139, 250, 0.5);
+
+  color:
+    var(--color-text-primary);
+}
+
+
+/* =========================================
+   SUBMIT BUTTON
+========================================= */
+
+.submit-button {
+  border:
+    1px solid transparent;
+
+  background:
+    var(--color-primary);
+
+  color:
+    #ffffff;
+
+  padding:
+    11px 22px;
+
+  border-radius:
+    var(--radius-md);
+
+  font-size:
+    14px;
+
+  font-weight:
+    600;
+
+  cursor:
+    pointer;
+
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+
+  box-shadow:
+    0 8px 22px
+    rgba(139, 92, 246, 0.25);
+}
+
+
+.submit-button:hover {
+  background:
+    var(--color-primary-hover);
+
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 10px 26px
+    rgba(139, 92, 246, 0.35);
+}
+
+
+.submit-button:active {
+  transform:
+    translateY(0);
+}
+
+
+/* =========================================
+   DISABLED STATE
+========================================= */
+
+.submit-button:disabled,
+.cancel-button:disabled,
+.back-button:disabled {
+  opacity: 0.55;
+
+  cursor:
+    not-allowed;
+
+  pointer-events:
+    none;
+}
+
+
+/* =========================================
+   SUCCESS MESSAGE
+========================================= */
+
+.success-message {
+  margin-top:
+    20px;
+
+  padding:
+    14px 16px;
+
+  border-radius:
+    var(--radius-md);
+
+  background:
+    var(--color-success-soft);
+
+  border:
+    1px solid
+    rgba(34, 197, 94, 0.35);
+
+  color:
+    var(--color-success);
+
+  font-size:
+    14px;
+
+  font-weight:
+    500;
+}
+
+
+/* =========================================
+   ERROR MESSAGE
+========================================= */
+
+.error-message {
+  margin-top:
+    20px;
+
+  padding:
+    14px 16px;
+
+  border-radius:
+    var(--radius-md);
+
+  background:
+    var(--color-danger-soft);
+
+  border:
+    1px solid
+    rgba(239, 68, 68, 0.35);
+
+  color:
+    var(--color-danger);
+
+  font-size:
+    14px;
+
+  font-weight:
+    500;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (
+  max-width: 768px
+) {
+
+  .add-project-page {
+    max-width:
+      100%;
+  }
+
+
+  .add-project-header {
+    flex-direction:
+      column;
+
+    align-items:
+      flex-start;
+
+    gap:
+      14px;
+  }
+
+
+  .add-project-form {
+    padding:
+      22px 18px;
+  }
+
+
+  .form-grid {
+    grid-template-columns:
+      1fr;
+
+    gap:
+      16px;
+  }
+
+
+  .form-field.full-width {
+    grid-column:
+      auto;
+  }
+
+
+  .form-actions {
+    flex-direction:
+      column-reverse;
+
+    align-items:
+      stretch;
+  }
+
+
+  .cancel-button,
+  .submit-button {
+    width:
+      100%;
+  }
+
+}
+
+
+@media (
+  max-width: 480px
+) {
+
+  .add-project-header h2 {
+    font-size:
+      24px;
+  }
+
+
+  .form-section h3 {
+    font-size:
+      16px;
+  }
+
+}

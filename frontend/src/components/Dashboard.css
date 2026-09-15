@@ -1,0 +1,945 @@
+/* =========================================
+   DASHBOARD PAGE
+========================================= */
+
+.dashboard-page {
+  width: 100%;
+  min-height: 100%;
+}
+
+
+/* =========================================
+   DASHBOARD HEADER
+========================================= */
+
+.dashboard-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: var(--spacing-xl);
+
+  margin-bottom: 28px;
+}
+
+
+.dashboard-page-header h2 {
+  margin: 0;
+
+  font-size: 28px;
+  font-weight: 700;
+
+  color: var(--color-text-primary);
+}
+
+
+.dashboard-page-header p {
+  margin: 7px 0 0;
+
+  font-size: 14px;
+
+  color: var(--color-text-secondary);
+}
+
+
+/* =========================================
+   REFRESH BUTTON
+========================================= */
+
+.refresh-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: var(--spacing-sm);
+
+  padding: 11px 16px;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-card);
+
+  color: var(--color-text-primary);
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+
+.refresh-button:hover {
+  background: var(--color-card-hover);
+
+  border-color: var(--color-primary);
+
+  transform: translateY(-1px);
+}
+
+
+.refresh-button:active {
+  transform: translateY(0);
+}
+
+
+/* =========================================
+   SUMMARY GRID
+========================================= */
+
+.summary-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 18px;
+
+  margin-bottom: 22px;
+}
+
+
+/* =========================================
+   SUMMARY CARD
+========================================= */
+
+.summary-card {
+  position: relative;
+
+  min-height: 170px;
+
+  padding: 22px;
+
+  border:
+    1px solid var(--color-border);
+
+  border-radius: var(--radius-lg);
+
+  background:
+    var(--color-card);
+
+  box-shadow:
+    var(--shadow-md);
+
+  transition:
+    transform var(--transition-fast),
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+
+.summary-card:hover {
+  transform: translateY(-3px);
+
+  border-color:
+    var(--color-primary);
+
+  background:
+    var(--color-card-hover);
+}
+
+
+/* =========================================
+   CARD ICON
+========================================= */
+
+.card-icon {
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 18px;
+
+  border-radius: 11px;
+
+  background:
+    var(--color-primary-soft);
+
+  color:
+    var(--color-primary);
+}
+
+
+.card-icon.warning {
+  background:
+    var(--color-warning-soft);
+
+  color:
+    var(--color-warning);
+}
+
+
+.card-icon.success {
+  background:
+    var(--color-success-soft);
+
+  color:
+    var(--color-success);
+}
+
+
+/* =========================================
+   SUMMARY CARD TEXT
+========================================= */
+
+.summary-card > span {
+  display: block;
+
+  margin-bottom: 8px;
+
+  font-size: 14px;
+
+  color:
+    var(--color-text-secondary);
+}
+
+
+.summary-card h3 {
+  margin: 0 0 8px;
+
+  font-size: 28px;
+  font-weight: 700;
+
+  color:
+    var(--color-text-primary);
+}
+
+
+.summary-card p {
+  margin: 0;
+
+  font-size: 13px;
+
+  color:
+    var(--color-text-muted);
+}
+
+
+/* =========================================
+   FINANCIAL OVERVIEW
+========================================= */
+
+.financial-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 18px;
+
+  margin-bottom: 30px;
+}
+
+
+/* =========================================
+   FINANCIAL CARD
+========================================= */
+
+.financial-card {
+  display: flex;
+
+  align-items: center;
+
+  gap: 16px;
+
+  min-height: 110px;
+
+  padding: 20px;
+
+  border:
+    1px solid var(--color-border);
+
+  border-radius:
+    var(--radius-lg);
+
+  background:
+    var(--color-card);
+
+  box-shadow:
+    var(--shadow-sm);
+
+  transition:
+    transform var(--transition-fast),
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+
+.financial-card:hover {
+  transform: translateY(-2px);
+
+  border-color:
+    var(--color-primary);
+
+  background:
+    var(--color-card-hover);
+}
+
+
+.financial-card > svg {
+  width: 46px;
+  height: 46px;
+
+  padding: 12px;
+
+  border-radius: 12px;
+
+  background:
+    var(--color-primary-soft);
+
+  color:
+    var(--color-primary);
+
+  flex-shrink: 0;
+}
+
+
+.financial-card span {
+  display: block;
+
+  margin-bottom: 7px;
+
+  font-size: 13px;
+
+  color:
+    var(--color-text-secondary);
+}
+
+
+.financial-card h3 {
+  margin: 0;
+
+  font-size: 20px;
+
+  color:
+    var(--color-text-primary);
+}
+
+
+/* =========================================
+   COMMON SECTION
+========================================= */
+
+.risk-section,
+.project-section {
+  margin-top: 30px;
+}
+
+
+.section-heading {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 16px;
+}
+
+
+.section-heading h2 {
+  margin: 0;
+
+  font-size: 20px;
+  font-weight: 700;
+
+  color:
+    var(--color-text-primary);
+}
+
+
+.section-heading p {
+  margin: 6px 0 0;
+
+  font-size: 13px;
+
+  color:
+    var(--color-text-secondary);
+}
+
+
+/* =========================================
+   RISK GRID
+========================================= */
+
+.risk-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 18px;
+}
+
+
+/* =========================================
+   RISK CARD
+========================================= */
+
+.risk-card {
+  min-height: 130px;
+
+  padding: 20px;
+
+  border:
+    1px solid var(--color-border);
+
+  border-top-width: 3px;
+
+  border-radius:
+    var(--radius-lg);
+
+  background:
+    var(--color-card);
+
+  box-shadow:
+    var(--shadow-sm);
+
+  transition:
+    transform var(--transition-fast),
+    background var(--transition-fast);
+}
+
+
+.risk-card:hover {
+  transform: translateY(-2px);
+
+  background:
+    var(--color-card-hover);
+}
+
+
+.risk-card span {
+  font-size: 14px;
+
+  font-weight: 600;
+}
+
+
+.risk-card h3 {
+  margin: 14px 0 8px;
+
+  font-size: 28px;
+
+  color:
+    var(--color-text-primary);
+}
+
+
+.risk-card p {
+  margin: 0;
+
+  font-size: 13px;
+
+  color:
+    var(--color-text-secondary);
+}
+
+
+/* =========================================
+   HIGH RISK
+========================================= */
+
+.high-risk {
+  border-top-color:
+    var(--color-danger);
+}
+
+
+.high-risk span {
+  color:
+    var(--color-danger);
+}
+
+
+/* =========================================
+   MEDIUM RISK
+========================================= */
+
+.medium-risk {
+  border-top-color:
+    var(--color-warning);
+}
+
+
+.medium-risk span {
+  color:
+    var(--color-warning);
+}
+
+
+/* =========================================
+   LOW RISK
+========================================= */
+
+.low-risk {
+  border-top-color:
+    var(--color-success);
+}
+
+
+.low-risk span {
+  color:
+    var(--color-success);
+}
+
+
+/* =========================================
+   PROJECT TABLE
+========================================= */
+
+.project-table-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+
+  border:
+    1px solid var(--color-border);
+
+  border-radius:
+    var(--radius-lg);
+
+  background:
+    var(--color-card);
+
+  box-shadow:
+    var(--shadow-md);
+}
+
+
+.project-table {
+  width: 100%;
+
+  min-width: 1150px;
+
+  border-collapse:
+    collapse;
+}
+
+
+/* =========================================
+   TABLE HEADER
+========================================= */
+
+.project-table th {
+  padding: 15px 18px;
+
+  background:
+    var(--color-table-header);
+
+  border-bottom:
+    1px solid var(--color-border);
+
+  text-align: left;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  letter-spacing: 0.4px;
+
+  text-transform:
+    uppercase;
+
+  color:
+    var(--color-text-secondary);
+
+  white-space:
+    nowrap;
+}
+
+
+/* =========================================
+   TABLE BODY
+========================================= */
+
+.project-table td {
+  padding: 16px 18px;
+
+  border-bottom:
+    1px solid var(--color-border-light);
+
+  font-size: 13px;
+
+  color:
+    var(--color-text-secondary);
+
+  vertical-align:
+    middle;
+}
+
+
+.project-table tbody tr {
+  transition:
+    background var(--transition-fast);
+}
+
+
+.project-table tbody tr:hover {
+  background:
+    var(--color-card-hover);
+}
+
+
+.project-table tbody tr:last-child td {
+  border-bottom:
+    none;
+}
+
+
+/* =========================================
+   PROJECT NAME CELL
+========================================= */
+
+.project-name-cell {
+  display: flex;
+
+  flex-direction:
+    column;
+
+  gap: 5px;
+}
+
+
+.project-name-cell strong {
+  color:
+    var(--color-text-primary);
+
+  font-size: 14px;
+
+  font-weight: 600;
+}
+
+
+.project-name-cell span {
+  color:
+    var(--color-text-muted);
+
+  font-size: 12px;
+}
+
+
+/* =========================================
+   BADGE BASE
+========================================= */
+
+.status-badge,
+.health-badge,
+.risk-badge,
+.data-badge {
+  display: inline-flex;
+
+  align-items: center;
+
+  padding: 5px 10px;
+
+  border-radius:
+    var(--radius-full);
+
+  font-size: 11px;
+
+  font-weight: 600;
+
+  white-space:
+    nowrap;
+}
+
+
+/* =========================================
+   PROJECT STATUS
+========================================= */
+
+.status-planned {
+  background:
+    var(--color-primary-soft);
+
+  color:
+    var(--color-primary-light);
+}
+
+
+.status-ongoing {
+  background:
+    var(--color-info-soft);
+
+  color:
+    var(--color-info);
+}
+
+
+.status-completed {
+  background:
+    var(--color-success-soft);
+
+  color:
+    var(--color-success);
+}
+
+
+.status-delayed {
+  background:
+    var(--color-danger-soft);
+
+  color:
+    var(--color-danger);
+}
+
+
+.status-stalled {
+  background:
+    rgba(148, 163, 184, 0.12);
+
+  color:
+    var(--color-text-muted);
+}
+
+
+/* =========================================
+   PROGRESS
+========================================= */
+
+.progress-cell {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  min-width: 150px;
+}
+
+
+.progress-bar {
+  flex: 1;
+
+  height: 7px;
+
+  overflow: hidden;
+
+  border-radius:
+    var(--radius-full);
+
+  background:
+    var(--color-input);
+}
+
+
+.progress-fill {
+  height: 100%;
+
+  border-radius:
+    inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--color-primary),
+      var(--color-primary-light)
+    );
+
+  transition:
+    width var(--transition-normal);
+}
+
+
+.progress-cell span {
+  min-width: 35px;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  color:
+    var(--color-text-primary);
+}
+
+
+/* =========================================
+   HEALTH BADGES
+========================================= */
+
+.health-good {
+  background:
+    var(--color-success-soft);
+
+  color:
+    var(--color-success);
+}
+
+
+.health-warning {
+  background:
+    var(--color-warning-soft);
+
+  color:
+    var(--color-warning);
+}
+
+
+.health-critical {
+  background:
+    var(--color-danger-soft);
+
+  color:
+    var(--color-danger);
+}
+
+
+.health-unknown {
+  background:
+    rgba(148, 163, 184, 0.12);
+
+  color:
+    var(--color-text-muted);
+}
+
+
+/* =========================================
+   RISK BADGES
+========================================= */
+
+.risk-high {
+  background:
+    var(--color-danger-soft);
+
+  color:
+    var(--color-danger);
+}
+
+
+.risk-medium {
+  background:
+    var(--color-warning-soft);
+
+  color:
+    var(--color-warning);
+}
+
+
+.risk-low {
+  background:
+    var(--color-success-soft);
+
+  color:
+    var(--color-success);
+}
+
+
+.risk-unknown {
+  background:
+    rgba(148, 163, 184, 0.12);
+
+  color:
+    var(--color-text-muted);
+}
+
+
+/* =========================================
+   DATA STATUS
+========================================= */
+
+.data-available {
+  background:
+    var(--color-primary-soft);
+
+  color:
+    var(--color-primary-light);
+}
+
+
+.data-pending {
+  background:
+    var(--color-warning-soft);
+
+  color:
+    var(--color-warning);
+}
+
+
+.data-unknown {
+  background:
+    rgba(148, 163, 184, 0.12);
+
+  color:
+    var(--color-text-muted);
+}
+
+
+/* =========================================
+   EMPTY TABLE
+========================================= */
+
+.empty-table {
+  padding: 50px !important;
+
+  text-align:
+    center;
+
+  color:
+    var(--color-text-muted);
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1400px) {
+
+  .financial-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+
+@media (max-width: 1200px) {
+
+  .summary-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+
+@media (max-width: 768px) {
+
+  .dashboard-page-header {
+    flex-direction:
+      column;
+
+    align-items:
+      flex-start;
+  }
+
+
+  .summary-grid,
+  .financial-grid,
+  .risk-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .refresh-button {
+    width: 100%;
+
+    justify-content:
+      center;
+  }
+
+
+  .summary-card {
+    min-height:
+      auto;
+  }
+
+}
