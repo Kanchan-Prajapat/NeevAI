@@ -272,9 +272,7 @@ const filteredProjects = analytics.projects.filter(
 
         ₹{" "}
 
-        {analytics.totalBudget.toLocaleString(
-          "en-IN"
-        )}
+        {(analytics.totalBudget/ 10000000).toFixed(2)} Cr
 
       </h3>
 
@@ -297,9 +295,7 @@ const filteredProjects = analytics.projects.filter(
 
         ₹{" "}
 
-        {analytics.totalExpenditure.toLocaleString(
-          "en-IN"
-        )}
+        {(analytics.totalExpenditure/10000000).toFixed(2)} Cr
 
       </h3>
 

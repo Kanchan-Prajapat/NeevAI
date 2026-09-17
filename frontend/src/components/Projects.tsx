@@ -726,29 +726,15 @@ if (
 
                         {/* PROJECT COST */}
 
-                        <td>
-
-                          {typeof project.budget ===
-                          "number" ? (
-
-                            <>
-                              ₹{" "}
-
-                              {project.budget.toLocaleString(
-                                "en-IN"
-                              )}
-
-                            </>
-
-                          ) : (
-
-                            "No Data"
-
-                          )}
-
-                        </td>
-
-
+                      <td>
+  {typeof project.budget === "number" ? (
+    <>
+      ₹ {(project.budget / 10000000).toFixed(2)} Cr
+    </>
+  ) : (
+    "No Data"
+  )}
+</td>
                         {/* PROGRESS */}
 
                         <td>
