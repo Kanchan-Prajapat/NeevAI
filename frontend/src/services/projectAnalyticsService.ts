@@ -2,11 +2,10 @@ import type {
   Project,
   ProjectSnapshot,
   Prediction,
+  DerivedMetric,
 } from "../../../shared/types";
 
-import {
-  getProjects,
-} from "./projectService";
+import { getProjects } from "./projectService";
 
 import {
   getAllProjectSnapshots,
@@ -16,6 +15,9 @@ import {
   getPredictionsByProjectId,
 } from "./predictionService";
 
+import {
+  getDerivedMetricBySnapshot,
+} from "./derivedMetricService";
 
 /* =========================================
    DASHBOARD PROJECT ITEM
@@ -43,9 +45,20 @@ export interface ProjectDashboardItem {
   healthStatus?:
     ProjectSnapshot["healthStatus"];
 
+  /*
+   * Phase 4 risk
+   */
   riskLevel?:
-    Prediction["riskLevel"];
+    DerivedMetric["riskLevel"];
 
+  riskScore?: number;
+
+  riskComponents?:
+    DerivedMetric["riskComponents"];
+
+  /*
+   * Kept for existing dashboard compatibility.
+   */
   dataStatus?:
     Prediction["dataStatus"];
 
@@ -60,7 +73,6 @@ export interface ProjectDashboardItem {
 ========================================= */
 
 export interface DashboardAnalytics {
-
   totalProjects: number;
 
   plannedProjects: number;
@@ -85,8 +97,9 @@ export interface DashboardAnalytics {
 
   lowRiskProjects: number;
 
-  projects: ProjectDashboardItem[];
+  criticalRiskProjects: number;
 
+  projects: ProjectDashboardItem[];
 }
 
 
@@ -94,14 +107,9 @@ export interface DashboardAnalytics {
    SAFE NUMBER
 ========================================= */
 
-/**
- * Prevent NaN values from entering
- * dashboard calculations.
- */
 const safeNumber = (
   value: unknown
 ): number => {
-
   if (
     typeof value !== "number" ||
     !Number.isFinite(value)
@@ -110,7 +118,6 @@ const safeNumber = (
   }
 
   return value;
-
 };
 
 
@@ -118,30 +125,24 @@ const safeNumber = (
    TIMESTAMP CONVERSION
 ========================================= */
 
-/**
- * Convert Firestore Timestamp,
- * JavaScript Date, or string
- * into milliseconds.
- */
 const getTimestampMilliseconds = (
   value: unknown
 ): number => {
-
   if (!value) {
     return 0;
   }
 
+  /*
+   * JavaScript Date
+   */
 
-  /* JavaScript Date */
-
-  if (
-    value instanceof Date
-  ) {
+  if (value instanceof Date) {
     return value.getTime();
   }
 
-
-  /* Firestore Timestamp */
+  /*
+   * Firestore Timestamp
+   */
 
   if (
     typeof value === "object" &&
@@ -153,7 +154,6 @@ const getTimestampMilliseconds = (
       }
     ).toDate === "function"
   ) {
-
     return (
       value as {
         toDate: () => Date;
@@ -161,29 +161,22 @@ const getTimestampMilliseconds = (
     )
       .toDate()
       .getTime();
-
   }
 
+  /*
+   * Date string
+   */
 
-  /* Date String */
-
-  if (
-    typeof value === "string"
-  ) {
-
+  if (typeof value === "string") {
     const time =
       new Date(value).getTime();
-
 
     return Number.isNaN(time)
       ? 0
       : time;
-
   }
 
-
   return 0;
-
 };
 
 
@@ -191,82 +184,54 @@ const getTimestampMilliseconds = (
    GET LATEST SNAPSHOT
 ========================================= */
 
-/**
- * Creates a map containing
- * the latest snapshot for
- * every project.
- */
 const getLatestSnapshotsMap = (
   snapshots: ProjectSnapshot[]
-): Map<
-  string,
-  ProjectSnapshot
-> => {
-
+): Map<string, ProjectSnapshot> => {
   const latestSnapshots =
-    new Map<
-      string,
-      ProjectSnapshot
-    >();
+    new Map<string, ProjectSnapshot>();
 
-
-  for (
-    const snapshot
-    of snapshots
-  ) {
-
+  for (const snapshot of snapshots) {
     const existingSnapshot =
       latestSnapshots.get(
         snapshot.projectId
       );
 
+    /*
+     * First snapshot
+     */
 
-    /* First snapshot */
-
-    if (
-      !existingSnapshot
-    ) {
-
+    if (!existingSnapshot) {
       latestSnapshots.set(
         snapshot.projectId,
         snapshot
       );
 
       continue;
-
     }
-
 
     const currentTime =
       getTimestampMilliseconds(
         snapshot.reportDate
       );
 
-
     const existingTime =
       getTimestampMilliseconds(
         existingSnapshot.reportDate
       );
 
+    /*
+     * Replace with newer snapshot
+     */
 
-    /* Replace with newer snapshot */
-
-    if (
-      currentTime > existingTime
-    ) {
-
+    if (currentTime > existingTime) {
       latestSnapshots.set(
         snapshot.projectId,
         snapshot
       );
-
     }
-
   }
 
-
   return latestSnapshots;
-
 };
 
 
@@ -274,13 +239,16 @@ const getLatestSnapshotsMap = (
    CRORE TO RUPEES
 ========================================= */
 
-/**
+/*
+ * Dashboard currently displays financial
+ * values in Rupees.
+ *
  * 1 Crore = 10,000,000 Rupees
  */
+
 const croreToRupees = (
   value?: number | null
 ): number | null => {
-
   if (
     value === undefined ||
     value === null
@@ -288,16 +256,11 @@ const croreToRupees = (
     return null;
   }
 
-
-  if (
-    !Number.isFinite(value)
-  ) {
+  if (!Number.isFinite(value)) {
     return null;
   }
 
-
   return value * 10_000_000;
-
 };
 
 
@@ -305,57 +268,48 @@ const croreToRupees = (
    NORMALIZE RISK LEVEL
 ========================================= */
 
-/**
- * Handles risk values safely,
- * regardless of capitalization.
- */
 const normalizeRiskLevel = (
   riskLevel:
-    | Prediction["riskLevel"]
+    | DerivedMetric["riskLevel"]
     | undefined
 ): string => {
-
   if (!riskLevel) {
     return "";
   }
 
-
-  return String(
-    riskLevel
-  )
+  return String(riskLevel)
     .trim()
     .toLowerCase();
-
 };
 
 
 /* =========================================
    MAIN DASHBOARD ANALYTICS
 ========================================= */
+
 export const getDashboardAnalytics =
-  async (): Promise<
-    DashboardAnalytics
-  > => {
-
+  async (): Promise<DashboardAnalytics> => {
     try {
-
-      /* =====================================
-         LOAD PROJECTS + SNAPSHOTS ONCE
-      ===================================== */
+      /*
+       * =====================================
+       * LOAD PROJECTS + SNAPSHOTS ONCE
+       * =====================================
+       */
 
       const [
         projects,
         snapshots,
-      ] =
-        await Promise.all([
-          getProjects(),
-          getAllProjectSnapshots(),
-        ]);
+      ] = await Promise.all([
+        getProjects(),
+        getAllProjectSnapshots(),
+      ]);
 
 
-      /* =====================================
-         CREATE LATEST SNAPSHOT MAP
-      ===================================== */
+      /*
+       * =====================================
+       * CREATE LATEST SNAPSHOT MAP
+       * =====================================
+       */
 
       const latestSnapshots =
         getLatestSnapshotsMap(
@@ -363,24 +317,24 @@ export const getDashboardAnalytics =
         );
 
 
-      /* =====================================
-         BUILD PROJECT DASHBOARD ITEMS
-      ===================================== */
+      /*
+       * =====================================
+       * BUILD PROJECT DASHBOARD ITEMS
+       * =====================================
+       */
 
       const projectItems =
         await Promise.all(
-
           projects.map(
-
             async (
               project: Project
-            ): Promise<
-              ProjectDashboardItem
-            > => {
+            ): Promise<ProjectDashboardItem> => {
 
-              /* ---------------------------------
-                 GET LATEST SNAPSHOT
-              --------------------------------- */
+              /*
+               * ---------------------------------
+               * GET LATEST SNAPSHOT
+               * ---------------------------------
+               */
 
               const latestSnapshot =
                 latestSnapshots.get(
@@ -388,90 +342,114 @@ export const getDashboardAnalytics =
                 );
 
 
-              /* ---------------------------------
-                 GET PREDICTIONS
-              --------------------------------- */
+              /*
+               * ---------------------------------
+               * GET OLD PREDICTION
+               * ---------------------------------
+               *
+               * Kept temporarily for existing
+               * dashboard compatibility.
+               */
 
               let prediction:
                 | Prediction
-                | null =
-                null;
-
+                | null = null;
 
               try {
-
                 const predictions =
                   await getPredictionsByProjectId(
                     project.projectId
                   );
 
-
                 if (
                   predictions &&
                   predictions.length > 0
                 ) {
-
                   prediction =
                     predictions.reduce(
                       (
                         latest,
                         current
                       ) => {
-
                         const latestTime =
                           getTimestampMilliseconds(
                             latest.createdAt
                           );
-
 
                         const currentTime =
                           getTimestampMilliseconds(
                             current.createdAt
                           );
 
-
                         return currentTime >
                           latestTime
                           ? current
                           : latest;
-
                       }
                     );
-
                 }
-
-              } catch (
-                error
-              ) {
-
+              } catch (error) {
                 console.error(
                   `Failed to load predictions for ${project.projectId}`,
                   error
                 );
-
               }
 
 
-              /* ---------------------------------
-                 BUDGET
+              /*
+               * ---------------------------------
+               * GET PHASE 4 DERIVED METRIC
+               * ---------------------------------
+               */
 
-                 Always use budgetCr
-                 consistently from Project.
-              --------------------------------- */
+              let derivedMetric:
+                | DerivedMetric
+                | null = null;
+
+              if (latestSnapshot?.id) {
+                try {
+                  derivedMetric =
+                    await getDerivedMetricBySnapshot(
+                      project.projectId,
+                      latestSnapshot.id
+                    );
+                } catch (error) {
+                  console.error(
+                    `Failed to load derived metrics for ${project.projectId}`,
+                    error
+                  );
+                }
+              }
+
+
+              /*
+               * ---------------------------------
+               * BUDGET
+               * ---------------------------------
+               *
+               * Prefer revised cost from the
+               * latest snapshot.
+               *
+               * Fall back to original project cost.
+               */
 
               const budget =
                 safeNumber(
                   croreToRupees(
-                    project.budgetCr
+                    latestSnapshot
+                      ?.revisedCostCr ??
+                      project.originalCostCr
                   )
                 );
 
 
-              /* ---------------------------------
-                 EXPENDITURE
-
-                 Latest snapshot only.
-              --------------------------------- */
+              /*
+               * ---------------------------------
+               * EXPENDITURE
+               * ---------------------------------
+               *
+               * Latest snapshot only.
+               */
 
               const expenditure =
                 safeNumber(
@@ -482,11 +460,11 @@ export const getDashboardAnalytics =
                 );
 
 
-              /* ---------------------------------
-                 PHYSICAL PROGRESS
-
-                 Latest snapshot only.
-              --------------------------------- */
+              /*
+               * ---------------------------------
+               * PHYSICAL PROGRESS
+               * ---------------------------------
+               */
 
               const progressPercentage =
                 safeNumber(
@@ -495,92 +473,96 @@ export const getDashboardAnalytics =
                 );
 
 
-              /* ---------------------------------
-                 STATUS
-
-                 Prefer latest snapshot status.
-                 Fall back to project status.
-              --------------------------------- */
+              /*
+               * ---------------------------------
+               * STATUS
+               * ---------------------------------
+               *
+               * Status belongs to the snapshot
+               * in the current Project schema.
+               */
 
               const status =
                 latestSnapshot
-                  ?.projectStatus
-                ??
-                project.status;
+                  ?.projectStatus;
 
 
-              /* ---------------------------------
-                 RETURN DASHBOARD ITEM
-              --------------------------------- */
+              /*
+               * ---------------------------------
+               * RETURN DASHBOARD ITEM
+               * ---------------------------------
+               */
 
               return {
-
                 projectId:
                   project.projectId,
-
 
                 projectName:
                   project.projectName,
 
-
                 projectType:
                   project.projectType,
-
 
                 domain:
                   project.domain,
 
-
                 implementingAgency:
                   project.implementingAgency,
 
-
                 status,
-
 
                 budget,
 
-
                 expenditure,
 
-
                 progressPercentage,
-
 
                 healthStatus:
                   latestSnapshot
                     ?.healthStatus,
 
-
                 latestSnapshotDate:
                   latestSnapshot
                     ?.reportDate,
 
+                /*
+                 * Existing prediction kept
+                 * for compatibility.
+                 */
 
                 prediction,
-
-
-                riskLevel:
-                  prediction
-                    ?.riskLevel,
-
 
                 dataStatus:
                   prediction
                     ?.dataStatus,
 
+                /*
+                 * Phase 4 risk is now sourced
+                 * from DerivedMetric.
+                 */
+
+                riskLevel:
+                  derivedMetric
+                    ?.riskLevel,
+
+                riskScore:
+                  derivedMetric
+                    ?.overallRiskScore,
+
+                riskComponents:
+                  derivedMetric
+                    ?.riskComponents,
               };
-
             }
-
           )
-
         );
 
 
-      /* =====================================
-         PROJECT COUNTS
-      ===================================== */
+      /*
+       * =====================================
+       * PROJECT COUNTS
+       * =====================================
+       */
 
       const totalProjects =
         projectItems.length;
@@ -588,9 +570,7 @@ export const getDashboardAnalytics =
 
       const plannedProjects =
         projectItems.filter(
-          (
-            project
-          ) =>
+          (project) =>
             project.status
               ?.trim()
               .toLowerCase() ===
@@ -600,9 +580,7 @@ export const getDashboardAnalytics =
 
       const ongoingProjects =
         projectItems.filter(
-          (
-            project
-          ) =>
+          (project) =>
             project.status
               ?.trim()
               .toLowerCase() ===
@@ -612,9 +590,7 @@ export const getDashboardAnalytics =
 
       const delayedProjects =
         projectItems.filter(
-          (
-            project
-          ) =>
+          (project) =>
             project.status
               ?.trim()
               .toLowerCase() ===
@@ -624,9 +600,7 @@ export const getDashboardAnalytics =
 
       const completedProjects =
         projectItems.filter(
-          (
-            project
-          ) =>
+          (project) =>
             project.status
               ?.trim()
               .toLowerCase() ===
@@ -636,9 +610,7 @@ export const getDashboardAnalytics =
 
       const stalledProjects =
         projectItems.filter(
-          (
-            project
-          ) =>
+          (project) =>
             project.status
               ?.trim()
               .toLowerCase() ===
@@ -646,86 +618,71 @@ export const getDashboardAnalytics =
         ).length;
 
 
-      /* =====================================
-         FINANCIAL TOTALS
-      ===================================== */
+      /*
+       * =====================================
+       * FINANCIAL TOTALS
+       * =====================================
+       */
 
       const totalBudget =
         projectItems.reduce(
-
           (
             total,
             project
           ) =>
-
             total +
             safeNumber(
               project.budget
             ),
-
           0
-
         );
 
 
       const totalExpenditure =
         projectItems.reduce(
-
           (
             total,
             project
           ) =>
-
             total +
             safeNumber(
               project.expenditure
             ),
-
           0
-
         );
 
 
-      /* =====================================
-         AVERAGE PROGRESS
-      ===================================== */
+      /*
+       * =====================================
+       * AVERAGE PROGRESS
+       * =====================================
+       */
 
       const averageProgress =
         totalProjects > 0
-
-          ?
-
-          projectItems.reduce(
-
-            (
-              total,
-              project
-            ) =>
-
-              total +
-              safeNumber(
-                project.progressPercentage
-              ),
-
-            0
-
-          ) /
-          totalProjects
-
-          :
-
-          0;
+          ? projectItems.reduce(
+              (
+                total,
+                project
+              ) =>
+                total +
+                safeNumber(
+                  project.progressPercentage
+                ),
+              0
+            ) / totalProjects
+          : 0;
 
 
-      /* =====================================
-         RISK ANALYTICS
-      ===================================== */
+      /*
+       * =====================================
+       * RISK ANALYTICS
+       * =====================================
+       */
 
       const highRiskProjects =
         projectItems.filter(
-          (
-            project
-          ) =>
+          (project) =>
             normalizeRiskLevel(
               project.riskLevel
             ) === "high"
@@ -734,9 +691,7 @@ export const getDashboardAnalytics =
 
       const mediumRiskProjects =
         projectItems.filter(
-          (
-            project
-          ) =>
+          (project) =>
             normalizeRiskLevel(
               project.riskLevel
             ) === "medium"
@@ -745,21 +700,29 @@ export const getDashboardAnalytics =
 
       const lowRiskProjects =
         projectItems.filter(
-          (
-            project
-          ) =>
+          (project) =>
             normalizeRiskLevel(
               project.riskLevel
             ) === "low"
         ).length;
 
 
-      /* =====================================
-         RETURN FINAL DASHBOARD ANALYTICS
-      ===================================== */
+      const criticalRiskProjects =
+        projectItems.filter(
+          (project) =>
+            normalizeRiskLevel(
+              project.riskLevel
+            ) === "critical"
+        ).length;
+
+
+      /*
+       * =====================================
+       * RETURN FINAL DASHBOARD ANALYTICS
+       * =====================================
+       */
 
       return {
-
         totalProjects,
 
         plannedProjects,
@@ -784,23 +747,18 @@ export const getDashboardAnalytics =
 
         lowRiskProjects,
 
+        criticalRiskProjects,
+
         projects:
           projectItems,
-
       };
 
-    } catch (
-      error
-    ) {
-
+    } catch (error) {
       console.error(
         "Failed to generate dashboard analytics:",
         error
       );
 
-
       throw error;
-
     }
-
   };

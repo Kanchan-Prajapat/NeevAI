@@ -23,6 +23,14 @@ import {
   Cell,
   ResponsiveContainer,
   Tooltip,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  BarChart,
+  Bar,
+  Legend,
 } from "recharts";
 
 import {
@@ -34,6 +42,14 @@ import type {
 } from "../services/projectAnalyticsService";
 
 import "./Analytics.css";
+
+import {
+  getAllProjectSnapshots,
+} from "../services/projectSnapshotService";
+
+import type {
+  ProjectSnapshot,
+} from "../../../shared/types";
 
 
 function Analytics() {
@@ -60,6 +76,11 @@ function Analytics() {
   >(null);
 
 
+const [
+  snapshots,
+  setSnapshots,
+] = useState<ProjectSnapshot[]>([]);
+
   /* =========================================
      LOAD ANALYTICS
   ========================================= */
@@ -74,17 +95,26 @@ function Analytics() {
         setError(null);
 
 
-        const data =
-          await getDashboardAnalytics();
+      const [
+  data,
+  snapshotData,
+] = await Promise.all([
+  getDashboardAnalytics(),
+  getAllProjectSnapshots(),
+]);
 
+console.log(
+  "Analytics data:",
+  data
+);
 
-        console.log(
-          "Analytics data:",
-          data
-        );
+console.log(
+  "Analytics snapshots:",
+  snapshotData
+);
 
-
-        setAnalytics(data);
+setAnalytics(data);
+setSnapshots(snapshotData);
 
       } catch (
         err
@@ -257,7 +287,180 @@ const hasStatusData =
     (item) => item.value > 0
   );
 
+  /* =========================================
+   FINANCIAL CHART DATA
+========================================= */
 
+const projectLookup = new Map(
+  analytics.projects.map((project) => [
+    project.projectId,
+    project,
+  ])
+);
+
+const financialChartData = analytics.projects
+  .filter(
+    (project) =>
+      typeof project.budget === "number" &&
+      project.budget > 0
+  )
+  .map((project) => ({
+    name:
+      project.projectName.length > 24
+        ? `${project.projectName.slice(0, 24)}...`
+        : project.projectName,
+
+    budget:
+      project.budget / 10_000_000,
+
+    expenditure:
+      project.expenditure / 10_000_000,
+  }))
+  .sort(
+    (a, b) =>
+      b.budget - a.budget
+  )
+  .slice(0, 8);
+
+  console.log("FINANCIAL CHART DATA:", financialChartData);
+
+
+/* =========================================
+   PROGRESS COMPARISON DATA
+========================================= */
+
+const latestSnapshotMap =
+  new Map<string, ProjectSnapshot>();
+
+snapshots.forEach(
+  (snapshot) => {
+
+    const existing =
+      latestSnapshotMap.get(
+        snapshot.projectId
+      );
+
+    if (!existing) {
+      latestSnapshotMap.set(
+        snapshot.projectId,
+        snapshot
+      );
+
+      return;
+    }
+
+    const currentDate =
+      new Date(
+        String(snapshot.reportDate)
+      ).getTime();
+
+    const existingDate =
+      new Date(
+        String(existing.reportDate)
+      ).getTime();
+
+    if (
+      currentDate >
+      existingDate
+    ) {
+      latestSnapshotMap.set(
+        snapshot.projectId,
+        snapshot
+      );
+    }
+  }
+);
+
+
+const progressChartData =
+  Array.from(
+    latestSnapshotMap.entries()
+  )
+    .map(
+      ([
+        projectId,
+        snapshot,
+      ]) => {
+
+        const project =
+          projectLookup.get(
+            projectId
+          );
+
+        if (!project) {
+          return null;
+        }
+
+        const budgetCr =
+          snapshot.revisedCostCr ??
+          snapshot.originalCostCr ??
+          project.originalCostCr ??
+          null;
+
+        const expenditureCr =
+          snapshot.cumulativeExpenditureCr ??
+          null;
+
+        const physicalProgress =
+          snapshot.physicalProgressPct ??
+          null;
+
+        if (
+          budgetCr === null ||
+          budgetCr <= 0 ||
+          expenditureCr === null ||
+          physicalProgress === null
+        ) {
+          return null;
+        }
+
+        const financialProgress =
+          (expenditureCr /
+            budgetCr) *
+          100;
+
+        return {
+          name:
+            project.projectName.length > 24
+              ? `${project.projectName.slice(
+                  0,
+                  24
+                )}...`
+              : project.projectName,
+
+          physicalProgress:
+            Math.min(
+              100,
+              Math.max(
+                0,
+                physicalProgress
+              )
+            ),
+
+          financialProgress:
+            Math.min(
+              100,
+              Math.max(
+                0,
+                financialProgress
+              )
+            ),
+        };
+      }
+    )
+    .filter(
+      (
+        item
+      ): item is {
+        name: string;
+        physicalProgress: number;
+        financialProgress: number;
+      } => item !== null
+    )
+    .slice(0, 8);
+
+
+console.log("PROGRESS CHART DATA:", progressChartData);
 
   return (
 
@@ -381,15 +584,11 @@ const hasStatusData =
               </span>
 
 
-              <h2>
-
-                ₹{" "}
-
-                {analytics.totalBudget.toLocaleString(
-                  "en-IN"
-                )}
-
-              </h2>
+            <h2>
+  ₹{" "}
+  {(analytics.totalBudget / 10_000_000).toFixed(2)}
+  {" "}Cr
+</h2>
 
             </div>
 
@@ -417,16 +616,11 @@ const hasStatusData =
               </span>
 
 
-              <h2>
-
-                ₹{" "}
-
-                {analytics.totalExpenditure.toLocaleString(
-                  "en-IN"
-                )}
-
-              </h2>
-
+           <h2>
+  ₹{" "}
+  {(analytics.totalExpenditure / 10_000_000).toFixed(2)}
+  {" "}Cr
+</h2>
             </div>
 
           </div>
@@ -509,12 +703,12 @@ const hasStatusData =
 
         {hasStatusData ? (
 
-          <ResponsiveContainer
-            width="100%"
-            height={300}
-          >
-
-            <PieChart>
+         <div className="chart-fixed-wrapper">
+<div style={{ width: "100%", height: 360 }}>
+          <PieChart
+  width={400}
+  height={300}
+>
 
               <Pie
                 data={statusChartData}
@@ -560,7 +754,8 @@ const hasStatusData =
 
             </PieChart>
 
-          </ResponsiveContainer>
+           </div>
+</div>
 
         ) : (
 
@@ -728,6 +923,241 @@ const hasStatusData =
 
   </div>
 
+
+</section>
+
+
+{/* =====================================
+   FINANCIAL OVERVIEW
+===================================== */}
+
+<section className="analytics-section">
+
+  <div className="analytics-section-header">
+
+    <div>
+
+      <h2>
+        Financial Overview
+      </h2>
+
+      <p>
+        Budget and cumulative expenditure
+        across projects
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <div className="analytics-chart-card">
+
+    {financialChartData.length > 0 ? (
+
+   <div style={{ width: "100%", height: 360 }}>
+
+      <BarChart
+  width={900}
+  height={360}
+  data={financialChartData}
+          margin={{
+            top: 10,
+            right: 20,
+            left: 10,
+            bottom: 80,
+          }}
+        >
+
+          <CartesianGrid
+            strokeDasharray="3 3"
+            vertical={false}
+          />
+
+          <XAxis
+            dataKey="name"
+            angle={-35}
+            textAnchor="end"
+            interval={0}
+            height={90}
+          />
+
+          <YAxis
+            tickFormatter={(value) =>
+              `₹${value} Cr`
+            }
+          />
+
+          <Tooltip
+            formatter={(
+              value,
+              name
+            ) => [
+              `₹${Number(value).toFixed(
+                2
+              )} Cr`,
+              name === "budget"
+                ? "Budget"
+                : "Expenditure",
+            ]}
+          />
+
+          <Legend />
+
+          <Bar
+            dataKey="budget"
+            name="Budget"
+            fill="#3B82F6"
+            radius={[
+              6,
+              6,
+              0,
+              0,
+            ]}
+          />
+
+          <Bar
+            dataKey="expenditure"
+            name="Expenditure"
+            fill="#22C55E"
+            radius={[
+              6,
+              6,
+              0,
+              0,
+            ]}
+          />
+
+        </BarChart>
+
+      </div>
+
+    ) : (
+
+      <div className="chart-empty-state">
+        No financial data available.
+      </div>
+
+    )}
+
+  </div>
+
+</section>
+
+
+{/* =====================================
+   PHYSICAL VS FINANCIAL PROGRESS
+===================================== */}
+
+<section className="analytics-section">
+
+  <div className="analytics-section-header">
+
+    <div>
+
+      <h2>
+        Physical vs Financial Progress
+      </h2>
+
+      <p>
+        Comparison of reported physical progress
+        with expenditure-based financial progress
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <div className="analytics-chart-card">
+
+    {progressChartData.length > 0 ? (
+
+    <BarChart
+  width={900}
+  height={360}
+ data={progressChartData}
+  margin={{
+    top: 10,
+    right: 20,
+    left: 10,
+    bottom: 80,
+  }}
+>
+
+          <CartesianGrid
+            strokeDasharray="3 3"
+            vertical={false}
+          />
+
+          <XAxis
+            dataKey="name"
+            angle={-35}
+            textAnchor="end"
+            interval={0}
+            height={90}
+          />
+
+          <YAxis
+            domain={[0, 100]}
+            tickFormatter={(value) =>
+              `${value}%`
+            }
+          />
+
+          <Tooltip
+            formatter={(
+              value,
+              name
+            ) => [
+              `${Number(value).toFixed(
+                1
+              )}%`,
+              name ===
+              "physicalProgress"
+                ? "Physical Progress"
+                : "Financial Progress",
+            ]}
+          />
+
+          <Legend />
+
+          <Bar
+            dataKey="physicalProgress"
+            name="Physical Progress"
+            fill="#8B5CF6"
+            radius={[
+              6,
+              6,
+              0,
+              0,
+            ]}
+          />
+
+          <Bar
+            dataKey="financialProgress"
+            name="Financial Progress"
+            fill="#F59E0B"
+            radius={[
+              6,
+              6,
+              0,
+              0,
+            ]}
+          />
+
+        </BarChart>
+
+
+    ) : (
+
+      <div className="chart-empty-state">
+        No progress comparison data available.
+      </div>
+
+    )}
+
+  </div>
 
 </section>
 

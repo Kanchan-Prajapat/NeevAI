@@ -1,18 +1,6 @@
 import { useState } from "react";
 
-import type { Project } from "../../../shared/types/project";
-
-import type {
-  ProjectType,
-  ProjectStatus,
-  Sectors,
-} from "../../../shared/constants";
-
-import {
-  PROJECT_TYPES,
-  PROJECT_STATUSES,
-  SECTORS,
-} from "../../../shared/constants";
+import type { Project } from "../../../shared/types";
 
 import {
   updateProject,
@@ -20,15 +8,11 @@ import {
 
 import "./EditProjectForm.css";
 
-
 interface EditProjectFormProps {
   project: Project;
-
   onCancel: () => void;
-
   onSuccess: () => void;
 }
-
 
 function EditProjectForm({
   project,
@@ -36,90 +20,159 @@ function EditProjectForm({
   onSuccess,
 }: EditProjectFormProps) {
 
-  const [name, setName] =
-    useState(project.name);
+  /* =========================================
+     BASIC INFORMATION
+  ========================================= */
 
-  const [description, setDescription] =
-    useState(
-      project.description ?? ""
-    );
-
+  const [projectName, setProjectName] =
+    useState(project.projectName ?? "");
 
   const [projectType, setProjectType] =
-    useState<ProjectType>(
-      project.projectType
+    useState(project.projectType ?? "");
+
+  const [domain, setDomain] =
+    useState<Project["domain"]>(
+      project.domain
     );
 
 
-  const [sector, setSector] =
-    useState<Sectors>(
-      project.sector
+  /* =========================================
+     ORGANIZATION
+  ========================================= */
+
+  const [ministry, setMinistry] =
+    useState(project.ministry ?? "");
+
+  const [implementingAgency, setImplementingAgency] =
+    useState(
+      project.implementingAgency ?? ""
     );
 
 
-  const [status, setStatus] =
-    useState<ProjectStatus>(
-      project.status
-    );
-
-
-  const [
-    implementingAgency,
-    setImplementingAgency,
-  ] = useState(
-    project.implementingAgency
-  );
-
+  /* =========================================
+     LOCATION
+  ========================================= */
 
   const [state, setState] =
+    useState(project.state ?? "");
+
+  const [districtOrLocation, setDistrictOrLocation] =
     useState(
-      project.location?.state ?? ""
+      project.districtOrLocation ?? ""
     );
 
 
-  const [district, setDistrict] =
+  /* =========================================
+     PROJECT PLANNING
+  ========================================= */
+
+  const [approvalDate, setApprovalDate] =
     useState(
-      project.location?.district ?? ""
+      typeof project.approvalDate === "string"
+        ? project.approvalDate
+        : ""
+    );
+
+  const [originalCompletionDate, setOriginalCompletionDate] =
+    useState(
+      typeof project.originalCompletionDate === "string"
+        ? project.originalCompletionDate
+        : ""
     );
 
 
-  const [city, setCity] =
+  /* =========================================
+     FINANCIAL
+  ========================================= */
+
+  const [originalCostCr, setOriginalCostCr] =
     useState(
-      project.location?.city ?? ""
+      project.originalCostCr?.toString() ?? ""
     );
 
 
-  const [budget, setBudget] =
+  /* =========================================
+     SOURCE
+  ========================================= */
+
+  const [dataSource, setDataSource] =
+    useState(project.dataSource ?? "");
+
+  const [sourceProjectCode, setSourceProjectCode] =
     useState(
-      project.budget.toString()
+      project.sourceProjectCode ?? ""
     );
 
 
-  const [expenditure, setExpenditure] =
-    useState(
-      project.expenditure.toString()
-    );
-
-
-  const [
-    progressPercentage,
-    setProgressPercentage,
-  ] = useState(
-    project.progressPercentage.toString()
-  );
-
+  /* =========================================
+     FORM STATE
+  ========================================= */
 
   const [submitting, setSubmitting] =
     useState(false);
 
-
   const [error, setError] =
     useState<string | null>(null);
-
 
   const [success, setSuccess] =
     useState(false);
 
+
+  /* =========================================
+     VALIDATION
+  ========================================= */
+
+  const validateForm = (): string | null => {
+
+    if (!projectName.trim()) {
+      return "Project name is required.";
+    }
+
+    if (!projectType.trim()) {
+      return "Project type is required.";
+    }
+
+    if (!ministry.trim()) {
+      return "Ministry is required.";
+    }
+
+    if (!implementingAgency.trim()) {
+      return "Implementing agency is required.";
+    }
+
+    if (!approvalDate) {
+      return "Approval date is required.";
+    }
+
+    if (!originalCompletionDate) {
+      return "Original completion date is required.";
+    }
+
+    if (!originalCostCr) {
+      return "Original project cost is required.";
+    }
+
+    const costValue =
+      Number(originalCostCr);
+
+    if (
+      Number.isNaN(costValue) ||
+      costValue < 0
+    ) {
+      return "Please enter a valid original project cost.";
+    }
+
+    if (!dataSource.trim()) {
+      return "Data source is required.";
+    }
+
+    return null;
+  };
+
+
+  /* =========================================
+     SUBMIT
+  ========================================= */
 
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>
@@ -127,62 +180,73 @@ function EditProjectForm({
 
     e.preventDefault();
 
+    setError(null);
+    setSuccess(false);
+
+
+    const validationError =
+      validateForm();
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
 
     if (!project.id) {
-
       setError(
         "Project document ID is missing."
       );
-
       return;
-
     }
 
 
     try {
 
       setSubmitting(true);
-
       setError(null);
-
       setSuccess(false);
 
 
       await updateProject(
         project.id,
         {
+          projectName:
+            projectName.trim(),
 
-          name,
+          domain,
 
-          description,
+          projectType:
+            projectType.trim(),
 
-          projectType,
+          ministry:
+            ministry.trim(),
 
-          sector,
+          implementingAgency:
+            implementingAgency.trim(),
 
-          status,
+          state:
+            state.trim() || undefined,
 
-          implementingAgency,
+          districtOrLocation:
+            districtOrLocation.trim() ||
+            undefined,
 
+          approvalDate:
+            approvalDate,
 
-          location: {
-            state,
-            district,
-            city,
-          },
+          originalCostCr:
+            Number(originalCostCr),
 
+          originalCompletionDate:
+            originalCompletionDate,
 
-          budget:
-            Number(budget),
+          dataSource:
+            dataSource.trim(),
 
-
-          expenditure:
-            Number(expenditure),
-
-
-          progressPercentage:
-            Number(progressPercentage),
-
+          sourceProjectCode:
+            sourceProjectCode.trim() ||
+            undefined,
         }
       );
 
@@ -191,9 +255,7 @@ function EditProjectForm({
 
 
       setTimeout(() => {
-
         onSuccess();
-
       }, 800);
 
 
@@ -204,27 +266,28 @@ function EditProjectForm({
         err
       );
 
-
       setError(
         "Failed to update project. Please try again."
       );
-
 
     } finally {
 
       setSubmitting(false);
 
     }
-
   };
 
 
-  return (
+  /* =========================================
+     UI
+  ========================================= */
 
+  return (
     <div className="edit-project-page">
 
-
-      {/* PAGE HEADER */}
+      {/* =====================================
+          HEADER
+      ===================================== */}
 
       <div className="edit-project-header">
 
@@ -235,8 +298,7 @@ function EditProjectForm({
           </h1>
 
           <p>
-            Update project information and
-            current progress.
+            Update project master information.
           </p>
 
         </div>
@@ -254,15 +316,14 @@ function EditProjectForm({
       </div>
 
 
-      {/* FORM */}
-
       <form
         className="edit-project-form"
         onSubmit={handleSubmit}
       >
 
-
-        {/* BASIC INFORMATION */}
+        {/* =====================================
+            BASIC INFORMATION
+        ===================================== */}
 
         <section className="edit-form-card">
 
@@ -272,7 +333,6 @@ function EditProjectForm({
 
 
           <div className="edit-form-grid">
-
 
             <div className="edit-form-group">
 
@@ -297,49 +357,16 @@ function EditProjectForm({
 
               <input
                 type="text"
-                value={name}
+                value={projectName}
                 onChange={(e) =>
-                  setName(e.target.value)
+                  setProjectName(
+                    e.target.value
+                  )
                 }
                 required
               />
 
             </div>
-
-
-            <div className="edit-form-group full-width">
-
-              <label>
-                Description
-              </label>
-
-              <textarea
-                value={description}
-                onChange={(e) =>
-                  setDescription(e.target.value)
-                }
-                rows={5}
-              />
-
-            </div>
-
-
-          </div>
-
-        </section>
-
-
-
-        {/* CLASSIFICATION */}
-
-        <section className="edit-form-card">
-
-          <h2>
-            Classification
-          </h2>
-
-
-          <div className="edit-form-grid">
 
 
             <div className="edit-form-group">
@@ -348,108 +375,55 @@ function EditProjectForm({
                 Project Type
               </label>
 
-              <select
+              <input
+                type="text"
                 value={projectType}
                 onChange={(e) =>
                   setProjectType(
-                    e.target.value as ProjectType
+                    e.target.value
                   )
                 }
-              >
-
-                {Object.values(
-                  PROJECT_TYPES
-                ).map((type) => (
-
-                  <option
-                    key={type}
-                    value={type}
-                  >
-                    {type}
-                  </option>
-
-                ))}
-
-              </select>
+                required
+              />
 
             </div>
-
 
 
             <div className="edit-form-group">
 
               <label>
-                Sector
+                Domain
               </label>
 
               <select
-                value={sector}
+                value={domain}
                 onChange={(e) =>
-                  setSector(
-                    e.target.value as Sectors
+                  setDomain(
+                    e.target.value as Project["domain"]
                   )
                 }
               >
 
-                {SECTORS.map(
-                  (item) => (
+                <option value="Roads & Highways">
+                  Roads & Highways
+                </option>
 
-                    <option
-                      key={item}
-                      value={item}
-                    >
-                      {item}
-                    </option>
-
-                  )
-                )}
+                <option value="Healthcare">
+                  Healthcare
+                </option>
 
               </select>
 
             </div>
-
-
-
-            <div className="edit-form-group">
-
-              <label>
-                Status
-              </label>
-
-              <select
-                value={status}
-                onChange={(e) =>
-                  setStatus(
-                    e.target.value as ProjectStatus
-                  )
-                }
-              >
-
-                {PROJECT_STATUSES.map(
-                  (item) => (
-
-                    <option
-                      key={item}
-                      value={item}
-                    >
-                      {item}
-                    </option>
-
-                  )
-                )}
-
-              </select>
-
-            </div>
-
 
           </div>
 
         </section>
 
 
-
-        {/* ORGANIZATION */}
+        {/* =====================================
+            ORGANIZATION
+        ===================================== */}
 
         <section className="edit-form-card">
 
@@ -460,7 +434,27 @@ function EditProjectForm({
 
           <div className="edit-form-grid">
 
-            <div className="edit-form-group full-width">
+            <div className="edit-form-group">
+
+              <label>
+                Ministry
+              </label>
+
+              <input
+                type="text"
+                value={ministry}
+                onChange={(e) =>
+                  setMinistry(
+                    e.target.value
+                  )
+                }
+                required
+              />
+
+            </div>
+
+
+            <div className="edit-form-group">
 
               <label>
                 Implementing Agency
@@ -484,8 +478,9 @@ function EditProjectForm({
         </section>
 
 
-
-        {/* LOCATION */}
+        {/* =====================================
+            LOCATION
+        ===================================== */}
 
         <section className="edit-form-card">
 
@@ -495,7 +490,6 @@ function EditProjectForm({
 
 
           <div className="edit-form-grid">
-
 
             <div className="edit-form-group">
 
@@ -507,139 +501,107 @@ function EditProjectForm({
                 type="text"
                 value={state}
                 onChange={(e) =>
-                  setState(e.target.value)
-                }
-              />
-
-            </div>
-
-
-
-            <div className="edit-form-group">
-
-              <label>
-                District
-              </label>
-
-              <input
-                type="text"
-                value={district}
-                onChange={(e) =>
-                  setDistrict(e.target.value)
-                }
-              />
-
-            </div>
-
-
-
-            <div className="edit-form-group">
-
-              <label>
-                City
-              </label>
-
-              <input
-                type="text"
-                value={city}
-                onChange={(e) =>
-                  setCity(e.target.value)
-                }
-              />
-
-            </div>
-
-
-          </div>
-
-        </section>
-
-
-
-        {/* FINANCIAL INFORMATION */}
-
-        <section className="edit-form-card">
-
-          <h2>
-            Financial Information
-          </h2>
-
-
-          <div className="edit-form-grid">
-
-
-            <div className="edit-form-group">
-
-              <label>
-                Total Budget
-              </label>
-
-              <input
-                type="number"
-                value={budget}
-                onChange={(e) =>
-                  setBudget(e.target.value)
-                }
-                min="0"
-                required
-              />
-
-            </div>
-
-
-
-            <div className="edit-form-group">
-
-              <label>
-                Current Expenditure
-              </label>
-
-              <input
-                type="number"
-                value={expenditure}
-                onChange={(e) =>
-                  setExpenditure(e.target.value)
-                }
-                min="0"
-                required
-              />
-
-            </div>
-
-
-          </div>
-
-        </section>
-
-
-
-        {/* PROGRESS */}
-
-        <section className="edit-form-card">
-
-          <h2>
-            Project Progress
-          </h2>
-
-
-          <div className="edit-form-grid">
-
-            <div className="edit-form-group">
-
-              <label>
-                Progress Percentage
-              </label>
-
-              <input
-                type="number"
-                value={progressPercentage}
-                onChange={(e) =>
-                  setProgressPercentage(
+                  setState(
                     e.target.value
                   )
                 }
+              />
+
+            </div>
+
+
+            <div className="edit-form-group">
+
+              <label>
+                District / Location
+              </label>
+
+              <input
+                type="text"
+                value={districtOrLocation}
+                onChange={(e) =>
+                  setDistrictOrLocation(
+                    e.target.value
+                  )
+                }
+              />
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        {/* =====================================
+            PROJECT PLANNING
+        ===================================== */}
+
+        <section className="edit-form-card">
+
+          <h2>
+            Project Planning
+          </h2>
+
+
+          <div className="edit-form-grid">
+
+            <div className="edit-form-group">
+
+              <label>
+                Approval Date
+              </label>
+
+              <input
+                type="date"
+                value={approvalDate}
+                onChange={(e) =>
+                  setApprovalDate(
+                    e.target.value
+                  )
+                }
+                required
+              />
+
+            </div>
+
+
+            <div className="edit-form-group">
+
+              <label>
+                Original Completion Date
+              </label>
+
+              <input
+                type="date"
+                value={originalCompletionDate}
+                onChange={(e) =>
+                  setOriginalCompletionDate(
+                    e.target.value
+                  )
+                }
+                required
+              />
+
+            </div>
+
+
+            <div className="edit-form-group">
+
+              <label>
+                Original Project Cost (₹ Cr)
+              </label>
+
+              <input
+                type="number"
                 min="0"
-                max="100"
+                step="0.01"
+                value={originalCostCr}
+                onChange={(e) =>
+                  setOriginalCostCr(
+                    e.target.value
+                  )
+                }
                 required
               />
 
@@ -650,11 +612,67 @@ function EditProjectForm({
         </section>
 
 
+        {/* =====================================
+            DATA SOURCE
+        ===================================== */}
 
-        {/* ACTIONS */}
+        <section className="edit-form-card">
+
+          <h2>
+            Data Source
+          </h2>
+
+
+          <div className="edit-form-grid">
+
+            <div className="edit-form-group">
+
+              <label>
+                Data Source
+              </label>
+
+              <input
+                type="text"
+                value={dataSource}
+                onChange={(e) =>
+                  setDataSource(
+                    e.target.value
+                  )
+                }
+                required
+              />
+
+            </div>
+
+
+            <div className="edit-form-group">
+
+              <label>
+                Source Project Code
+              </label>
+
+              <input
+                type="text"
+                value={sourceProjectCode}
+                onChange={(e) =>
+                  setSourceProjectCode(
+                    e.target.value
+                  )
+                }
+              />
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        {/* =====================================
+            ACTIONS
+        ===================================== */}
 
         <div className="edit-form-actions">
-
 
           <button
             type="button"
@@ -678,12 +696,12 @@ function EditProjectForm({
 
           </button>
 
-
         </div>
 
 
-
-        {/* SUCCESS */}
+        {/* =====================================
+            SUCCESS
+        ===================================== */}
 
         {success && (
 
@@ -696,8 +714,9 @@ function EditProjectForm({
         )}
 
 
-
-        {/* ERROR */}
+        {/* =====================================
+            ERROR
+        ===================================== */}
 
         {error && (
 
@@ -709,13 +728,10 @@ function EditProjectForm({
 
         )}
 
-
       </form>
 
     </div>
-
   );
-
 }
 
 

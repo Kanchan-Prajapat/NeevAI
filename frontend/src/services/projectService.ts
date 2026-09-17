@@ -96,14 +96,21 @@ export const updateProject = async (
   try {
     const projectRef = doc(
       db,
-      "projects",
+      PROJECTS_COLLECTION,
       id
     );
 
-    await updateDoc(
-      projectRef,
-      projectData
+    // Firestore does not accept undefined values.
+    const cleanedData = Object.fromEntries(
+      Object.entries(projectData).filter(
+        ([, value]) => value !== undefined
+      )
     );
+
+    await updateDoc(projectRef, {
+      ...cleanedData,
+      updatedAt: serverTimestamp(),
+    });
 
   } catch (error) {
     console.error(
@@ -114,8 +121,6 @@ export const updateProject = async (
     throw error;
   }
 };
-
-
 
 
 /**

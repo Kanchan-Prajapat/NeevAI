@@ -5,7 +5,7 @@ export type ReportType =
   | "Quarterly"
   | "Other";
 
-  export type HealthStatus =
+export type HealthStatus =
   | "Healthy"
   | "Warning"
   | "Critical"
@@ -14,17 +14,14 @@ export type ReportType =
 export interface ProjectSnapshot {
   id?: string;
 
-  // Project reference
   projectId: string;
 
-  // Reporting information
   reportType: ReportType;
 
   reportPeriod: string;
 
   reportDate: TimestampValue | string;
 
-  // Financial information
   originalCostCr?: number | null;
 
   revisedCostCr?: number | null;
@@ -33,31 +30,45 @@ export interface ProjectSnapshot {
 
   cumulativeExpenditureCr?: number | null;
 
-  // Physical progress
   physicalProgressPct?: number | null;
 
   healthStatus?: HealthStatus;
 
-  // Timeline
-  originalCompletionDate?: TimestampValue | string | null;
+  originalCompletionDate?:
+    | TimestampValue
+    | string
+    | null;
 
-  revisedCompletionDate?: TimestampValue | string | null;
+  revisedCompletionDate?:
+    | TimestampValue
+    | string
+    | null;
 
-  anticipatedCompletionDate?: TimestampValue | string | null;
+  anticipatedCompletionDate?:
+    | TimestampValue
+    | string
+    | null;
 
-  // Current status
   projectStatus?: string;
 
-  // Remarks/issues
   remarks?: string;
 
-  // Source traceability
   sourceReport: string;
 
   sourcePage?: string | number | null;
 
-  // Metadata
   createdAt?: TimestampValue;
 
   updatedAt?: TimestampValue;
+
+    // ML / project execution inputs
+  totalMilestones?: number | null;
+  completedMilestones?: number | null;
+  delayedMilestones?: number | null;
+
+  landAcquisitionDelayMonths?: number | null;
+  clearanceDelayMonths?: number | null;
+
+  contractorDelayScore?: number | null;
+  geologicalDelayScore?: number | null;
 }

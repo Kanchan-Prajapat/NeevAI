@@ -143,3 +143,82 @@ export const deletePrediction = async (
 };
 
 
+// ---------------------------------------------------------
+// FastAPI ML Prediction
+// ---------------------------------------------------------
+
+export interface MLProjectPrediction {
+  predicted_delay_months: number;
+  predicted_cost_overrun_pct: number;
+  predicted_cost_overrun_cr: number;
+  predicted_risk_score: number;
+  risk_category: string;
+  model_version: string;
+
+  feature_count: number;
+}
+
+export interface MLProjectPredictionResponse {
+  success: boolean;
+
+  project: {
+    projectId: string;
+    projectName: string;
+    domain: string;
+    state?: string;
+  };
+
+  snapshot: {
+    snapshotId: string;
+    reportType: string;
+    reportPeriod: string;
+    reportDate: string;
+  };
+
+  prediction: MLProjectPrediction;
+}
+
+const ML_API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ??
+  "http://127.0.0.1:8000";
+
+export const getMLProjectPrediction = async (
+  projectId: string
+): Promise<MLProjectPredictionResponse> => {
+  const cleanProjectId = projectId.trim();
+
+  if (!cleanProjectId) {
+    throw new Error("Project ID is required.");
+  }
+
+  const response = await fetch(
+    `${ML_API_BASE_URL}/api/predictions/project/${encodeURIComponent(
+      cleanProjectId
+    )}`
+  );
+
+  let data: unknown;
+
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+      `Prediction API returned an invalid response (${response.status}).`
+    );
+  }
+
+  if (!response.ok) {
+    const detail =
+      typeof data === "object" &&
+      data !== null &&
+      "detail" in data &&
+      typeof (data as { detail?: unknown }).detail === "string"
+        ? (data as { detail: string }).detail
+        : `Prediction failed with status ${response.status}.`;
+
+    throw new Error(detail);
+  }
+
+console.log("ML API RESPONSE:", data);
+  return data as MLProjectPredictionResponse;
+};

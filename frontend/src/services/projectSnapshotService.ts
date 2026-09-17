@@ -3,12 +3,15 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   query,
   serverTimestamp,
   updateDoc,
   where,
 } from "firebase/firestore";
+
+import { recalculateProject } from "./recalcService";
 
 import { db } from "../firebase/firebase";
 
@@ -36,8 +39,13 @@ export const createProjectSnapshot = async (
     }
   );
 
+  await recalculateProject(
+    snapshot.projectId
+  );
+
   return docRef.id;
 };
+
 
 /**
  * Get all snapshots for a project
@@ -99,11 +107,32 @@ export const updateProjectSnapshot = async (
     id
   );
 
+  const existingSnapshot =
+    await getDoc(documentRef);
+
+  if (!existingSnapshot.exists()) {
+    throw new Error(
+      `Snapshot not found: ${id}`
+    );
+  }
+
+  const existingData =
+    existingSnapshot.data() as ProjectSnapshot;
+
   await updateDoc(documentRef, {
     ...updates,
     updatedAt: serverTimestamp(),
   });
+
+  const projectId =
+    updates.projectId ??
+    existingData.projectId;
+
+  await recalculateProject(
+    projectId
+  );
 };
+
 
 /**
  * Delete a snapshot
@@ -117,7 +146,23 @@ export const deleteProjectSnapshot = async (
     id
   );
 
+  const existingSnapshot =
+    await getDoc(documentRef);
+
+  if (!existingSnapshot.exists()) {
+    throw new Error(
+      `Snapshot not found: ${id}`
+    );
+  }
+
+  const snapshot =
+    existingSnapshot.data() as ProjectSnapshot;
+
   await deleteDoc(documentRef);
+
+  await recalculateProject(
+    snapshot.projectId
+  );
 };
 
 

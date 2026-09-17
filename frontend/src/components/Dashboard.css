@@ -373,7 +373,7 @@
   display: grid;
 
   grid-template-columns:
-    repeat(3, minmax(0, 1fr));
+    repeat(4, minmax(0, 1fr));
 
   gap: 18px;
 }
@@ -388,6 +388,7 @@
 
   padding: 20px;
 
+cursor: pointer;
   border:
     1px solid var(--color-border);
 
@@ -523,6 +524,142 @@
     collapse;
 }
 
+/* =========================================
+   PROJECT TABLE - COLUMN BALANCE
+========================================= */
+
+.project-table {
+  table-layout: fixed;
+}
+
+
+.project-table th,
+.project-table td {
+  white-space: nowrap;
+}
+
+
+/* Project column */
+
+.project-table th:nth-child(1),
+.project-table td:nth-child(1) {
+  width: 22%;
+}
+
+
+/* Type */
+
+.project-table th:nth-child(2),
+.project-table td:nth-child(2) {
+  width: 7%;
+}
+
+
+/* Domain */
+
+.project-table th:nth-child(3),
+.project-table td:nth-child(3) {
+  width: 12%;
+}
+
+
+/* Agency */
+
+.project-table th:nth-child(4),
+.project-table td:nth-child(4) {
+  width: 12%;
+}
+
+
+/* Status */
+
+.project-table th:nth-child(5),
+.project-table td:nth-child(5) {
+  width: 9%;
+}
+
+
+/* Progress */
+
+.project-table th:nth-child(6),
+.project-table td:nth-child(6) {
+  width: 12%;
+}
+
+
+/* Cost */
+
+.project-table th:nth-child(7),
+.project-table td:nth-child(7) {
+  width: 10%;
+}
+
+
+/* Risk */
+
+.project-table th:nth-child(8),
+.project-table td:nth-child(8) {
+  width: 7%;
+}
+
+
+/* Score */
+
+.project-table th:nth-child(9),
+.project-table td:nth-child(9) {
+  width: 5%;
+}
+
+
+/* AI Data */
+
+.project-table th:nth-child(10),
+.project-table td:nth-child(10) {
+  width: 6%;
+}
+
+
+/* =========================================
+   PROJECT NAME
+========================================= */
+
+.project-name-cell {
+  min-width: 0;
+}
+
+
+.project-name-cell strong {
+  display: block;
+
+  max-width: 235px;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================
+   COST
+========================================= */
+
+.project-table td:nth-child(7) {
+  white-space: nowrap;
+}
+
+
+/* =========================================
+   DOMAIN / AGENCY
+========================================= */
+
+.project-table td:nth-child(3),
+.project-table td:nth-child(4) {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
 
 /* =========================================
    TABLE HEADER
@@ -885,6 +1022,59 @@
     var(--color-text-muted);
 }
 
+/* =========================================
+   CRITICAL RISK
+========================================= */
+
+.critical-risk {
+  border-top-color:
+    var(--color-danger);
+}
+
+.critical-risk span {
+  color:
+    var(--color-danger);
+}
+
+
+/* =========================================
+   RISK SCORE
+========================================= */
+
+.risk-score {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  min-width: 48px;
+
+  padding: 5px 9px;
+
+  border-radius:
+    var(--radius-full);
+
+  background:
+    var(--color-primary-soft);
+
+  color:
+    var(--color-primary-light);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  font-variant-numeric:
+    tabular-nums;
+}
+
+.risk-score.unknown {
+  background:
+    rgba(148, 163, 184, 0.12);
+
+  color:
+    var(--color-text-muted);
+}
+
 
 /* =========================================
    RESPONSIVE
@@ -905,6 +1095,18 @@
   .summary-grid {
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
+  }
+
+    .dashboard-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filter-search {
+    grid-column: 1 / -1;
+  }
+
+  .reset-filter-button {
+    width: 100%;
   }
 
 }
@@ -928,6 +1130,22 @@
       1fr;
   }
 
+    .dashboard-filters {
+    grid-template-columns: 1fr;
+
+    padding: 12px;
+  }
+
+  .filter-search {
+    grid-column: auto;
+  }
+
+  .dashboard-filters input,
+  .dashboard-filters select,
+  .reset-filter-button {
+    width: 100%;
+  }
+
 
   .refresh-button {
     width: 100%;
@@ -943,3 +1161,119 @@
   }
 
 }
+
+
+/* =========================================
+   PROJECT FILTERS
+========================================= */
+
+.dashboard-filters {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.5fr) repeat(3, minmax(150px, 1fr)) auto;
+  gap: 12px;
+
+  margin-bottom: 18px;
+  padding: 14px;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-card);
+  box-shadow: var(--shadow-sm);
+}
+
+
+.dashboard-filters input,
+.dashboard-filters select {
+  width: 100%;
+  height: 42px;
+
+  padding: 0 13px;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-input);
+
+  color: var(--color-text-primary);
+
+  font-family: inherit;
+  font-size: 13px;
+
+  outline: none;
+
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+
+.dashboard-filters input::placeholder {
+  color: var(--color-text-muted);
+}
+
+
+.dashboard-filters input:focus,
+.dashboard-filters select:focus {
+  border-color: var(--color-primary);
+
+  box-shadow:
+    0 0 0 3px var(--color-primary-soft);
+}
+
+
+.dashboard-filters select {
+  cursor: pointer;
+}
+
+
+.reset-filter-button {
+  height: 42px;
+
+  padding: 0 17px;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: transparent;
+
+  color: var(--color-text-secondary);
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  white-space: nowrap;
+
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+
+.reset-filter-button:hover {
+  background: var(--color-primary-soft);
+
+  border-color: var(--color-primary);
+
+  color: var(--color-primary-light);
+}
+
+
+/* FILTER EMPTY STATE */
+
+.filter-empty-message {
+  padding: 40px 20px !important;
+
+  text-align: center;
+
+  color: var(--color-text-muted);
+
+  font-size: 13px;
+}
+
+

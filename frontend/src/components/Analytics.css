@@ -182,6 +182,19 @@
 }
 
 
+.chart-fixed-wrapper {
+  width: 100%;
+  height: 360px;
+  min-height: 360px;
+  position: relative;
+}
+
+.chart-fixed-wrapper .recharts-responsive-container {
+  width: 100% !important;
+  height: 360px !important;
+  min-width: 0;
+}
+
 .analytics-metric-card:hover {
   background:
     var(--color-card-hover);
@@ -1128,6 +1141,56 @@
     var(--color-danger);
 }
 
+
+/* =========================================
+   ANALYTICS CHART CARD
+========================================= */
+
+.analytics-chart-card {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.analytics-chart-card
+.recharts-wrapper {
+  max-width: 100%;
+}
+
+.chart-empty-state {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+
+/* =========================================
+   RECHARTS TOOLTIP
+========================================= */
+
+.recharts-tooltip-wrapper {
+  z-index: 10;
+}
+
+.recharts-default-tooltip {
+  border-radius: 10px !important;
+}
+
+
+/* =========================================
+   MOBILE CHARTS
+========================================= */
+
+@media (max-width: 768px) {
+
+  .analytics-chart-card {
+    padding: 4px 0;
+  }
+
+}
 
 /* =========================================
    CHART RESPONSIVE

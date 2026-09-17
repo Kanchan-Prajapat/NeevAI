@@ -31,6 +31,17 @@ function Dashboard() {
   const [error, setError] =
     useState<string | null>(null);
 
+const [searchTerm, setSearchTerm] =
+  useState("");
+
+const [domainFilter, setDomainFilter] =
+  useState("All");
+
+const [statusFilter, setStatusFilter] =
+  useState("All");
+
+const [riskFilter, setRiskFilter] =
+  useState("All");
 
   useEffect(() => {
     loadDashboard();
@@ -107,7 +118,46 @@ function Dashboard() {
   }
 
 
+const filteredProjects = analytics.projects.filter(
+  (project) => {
+    const search = searchTerm
+      .trim()
+      .toLowerCase();
 
+    const matchesSearch =
+      !search ||
+      project.projectName
+        ?.toLowerCase()
+        .includes(search) ||
+      project.projectId
+        ?.toLowerCase()
+        .includes(search) ||
+      project.implementingAgency
+        ?.toLowerCase()
+        .includes(search);
+
+    const matchesDomain =
+      domainFilter === "All" ||
+      project.domain === domainFilter;
+
+    const matchesStatus =
+      statusFilter === "All" ||
+      project.status?.toLowerCase() ===
+        statusFilter.toLowerCase();
+
+    const matchesRisk =
+      riskFilter === "All" ||
+      project.riskLevel?.toLowerCase() ===
+        riskFilter.toLowerCase();
+
+    return (
+      matchesSearch &&
+      matchesDomain &&
+      matchesStatus &&
+      matchesRisk
+    );
+  }
+);
 
     return (
   <DashboardLayout>
@@ -312,10 +362,10 @@ function Dashboard() {
           <div>
             <h2>Risk Overview</h2>
 
-            <p>
-              Project risk distribution based on
-              latest prediction data
-            </p>
+          <p>
+  Project risk distribution based on
+  latest calculated risk metrics
+</p>  
           </div>
 
         </div>
@@ -323,7 +373,10 @@ function Dashboard() {
 
         <div className="risk-grid">
 
-          <div className="risk-card high-risk">
+         <div
+  className="risk-card high-risk"
+  onClick={() => setRiskFilter("High")}
+>
 
             <span>High Risk</span>
 
@@ -338,7 +391,10 @@ function Dashboard() {
           </div>
 
 
-          <div className="risk-card medium-risk">
+         <div
+  className="risk-card medium-risk"
+  onClick={() => setRiskFilter("Medium")}
+>
 
             <span>Medium Risk</span>
 
@@ -353,7 +409,10 @@ function Dashboard() {
           </div>
 
 
-          <div className="risk-card low-risk">
+      <div
+  className="risk-card low-risk"
+  onClick={() => setRiskFilter("Low")}
+>
 
             <span>Low Risk</span>
 
@@ -366,6 +425,22 @@ function Dashboard() {
             </p>
 
           </div>
+
+      <div
+  className="risk-card critical-risk"
+  onClick={() => setRiskFilter("Critical")}
+>
+  <span>Critical Risk</span>
+
+  <h3>
+    {analytics.criticalRiskProjects}
+  </h3>
+
+  <p>
+    Urgent intervention required
+  </p>
+
+</div>
 
         </div>
 
@@ -389,6 +464,108 @@ function Dashboard() {
     </div>
 
   </div>
+
+  <div className="dashboard-filters">
+
+  <div className="filter-search">
+
+    <input
+      type="text"
+      placeholder="Search project, ID or agency..."
+      value={searchTerm}
+      onChange={(e) =>
+        setSearchTerm(e.target.value)
+      }
+    />
+
+  </div>
+
+
+  <select
+    value={domainFilter}
+    onChange={(e) =>
+      setDomainFilter(e.target.value)
+    }
+  >
+    <option value="All">
+      All Domains
+    </option>
+
+    <option value="Roads & Highways">
+      Roads & Highways
+    </option>
+
+    <option value="Healthcare">
+      Healthcare
+    </option>
+  </select>
+
+
+  <select
+    value={statusFilter}
+    onChange={(e) =>
+      setStatusFilter(e.target.value)
+    }
+  >
+    <option value="All">
+      All Status
+    </option>
+
+    <option value="Ongoing">
+      Ongoing
+    </option>
+
+    <option value="Completed">
+      Completed
+    </option>
+
+    <option value="Planned">
+      Planned
+    </option>
+  </select>
+
+
+  <select
+    value={riskFilter}
+    onChange={(e) =>
+      setRiskFilter(e.target.value)
+    }
+  >
+    <option value="All">
+      All Risk Levels
+    </option>
+
+    <option value="Low">
+      Low
+    </option>
+
+    <option value="Medium">
+      Medium
+    </option>
+
+    <option value="High">
+      High
+    </option>
+
+    <option value="Critical">
+      Critical
+    </option>
+  </select>
+
+
+  <button
+    className="reset-filter-button"
+    onClick={() => {
+      setSearchTerm("");
+      setDomainFilter("All");
+      setStatusFilter("All");
+      setRiskFilter("All");
+    }}
+  >
+    Reset
+  </button>
+
+</div>
 
 
   <div className="project-table-wrapper">
@@ -420,9 +597,13 @@ function Dashboard() {
       Cost
     </th>
 
-    <th>
-      Risk
-    </th>
+  <th>
+  Risk
+</th>
+
+<th>
+  Score
+</th>
 
     <th>
       AI Data
@@ -434,22 +615,22 @@ function Dashboard() {
 
    <tbody>
 
-  {analytics.projects.length === 0 ? (
+  {filteredProjects.length === 0? (
 
     <tr>
 
       <td
-        colSpan={9}
+        colSpan={10}
         className="empty-table"
       >
-        No projects available.
+      No projects match the selected filters.
       </td>
 
     </tr>
 
   ) : (
 
-   analytics.projects
+  filteredProjects
   .slice(0, 10)
   .map((project) => (
 
@@ -552,15 +733,9 @@ function Dashboard() {
 
       {/* COST */}
 
-      <td>
-
-        ₹{" "}
-
-        {project.budget.toLocaleString(
-          "en-IN"
-        )}
-
-      </td>
+<td>
+  ₹ {(project.budget / 10000000).toFixed(2)} Cr
+</td>
 
 
       {/* RISK */}
@@ -588,6 +763,29 @@ function Dashboard() {
         )}
 
       </td>
+
+
+      {/* RISK SCORE */}
+
+<td>
+
+  {typeof project.riskScore === "number" ? (
+
+    <span className="risk-score">
+
+      {project.riskScore.toFixed(1)}
+
+    </span>
+
+  ) : (
+
+    <span className="risk-score unknown">
+      —
+    </span>
+
+  )}
+
+</td>
 
 
       {/* AI DATA */}

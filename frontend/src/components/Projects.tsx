@@ -10,6 +10,7 @@ import DashboardLayout from "./DashboardLayout";
 import ProjectDetails from "./ProjectDetails";
 
 import EditProjectForm from "./EditProjectForm";
+import AddProjectSnapshotForm from "./AddProjectSnapshotForm";
 
 import {
   getProjectByProjectId,
@@ -82,6 +83,10 @@ function Projects() {
     setShowEditProjectForm,
   ] = useState(false);
 
+const [
+  showAddSnapshotForm,
+  setShowAddSnapshotForm,
+] = useState(false);
 
   const [
     searchQuery,
@@ -157,6 +162,11 @@ function Projects() {
      Therefore we fetch the master
      project before opening details.
   ============================== */
+
+
+  const handleAddSnapshot = (): void => {
+  setShowAddSnapshotForm(true);
+};
 
   const handleOpenProject =
     async (
@@ -351,6 +361,30 @@ function Projects() {
 
   }
 
+/* ==============================
+   ADD SNAPSHOT PAGE
+============================== */
+
+if (
+  showAddSnapshotForm &&
+  selectedProject
+) {
+  return (
+    <AddProjectSnapshotForm
+      project={selectedProject}
+
+      onCancel={() => {
+        setShowAddSnapshotForm(false);
+      }}
+
+      onSuccess={async () => {
+        setShowAddSnapshotForm(false);
+
+        await loadProjects();
+      }}
+    />
+  );
+}
 
   /* ==============================
      PROJECT DETAILS PAGE
@@ -360,27 +394,21 @@ function Projects() {
 
     return (
 
-      <ProjectDetails
+    <ProjectDetails
+  project={selectedProject}
 
-        project={selectedProject}
+  onBack={() => {
+    setSelectedProject(null);
+  }}
 
-        onBack={() => {
+  onEdit={() => {
+    setShowEditProjectForm(true);
+  }}
 
-          setSelectedProject(
-            null
-          );
-
-        }}
-
-        onEdit={() => {
-
-          setShowEditProjectForm(
-            true
-          );
-
-        }}
-
-      />
+  onAddSnapshot={() => {
+    setShowAddSnapshotForm(true);
+  }}
+/>
 
     );
 
