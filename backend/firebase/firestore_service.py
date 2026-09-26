@@ -10,7 +10,8 @@ from firebase_admin import firestore
 # Firebase initialization
 # ---------------------------------------------------------------------------
 
-SERVICE_ACCOUNT_PATH = os.path.join(
+
+LOCAL_SERVICE_ACCOUNT_PATH = os.path.join(
     os.path.dirname(
         os.path.dirname(
             os.path.dirname(
@@ -20,6 +21,17 @@ SERVICE_ACCOUNT_PATH = os.path.join(
     ),
     "firebase-service-account.json",
 )
+
+RENDER_SERVICE_ACCOUNT_PATH = (
+    "/etc/secrets/firebase-service-account.json"
+)
+
+SERVICE_ACCOUNT_PATH = (
+    RENDER_SERVICE_ACCOUNT_PATH
+    if os.path.exists(RENDER_SERVICE_ACCOUNT_PATH)
+    else LOCAL_SERVICE_ACCOUNT_PATH
+)
+
 
 
 def _initialize_firebase() -> None:
