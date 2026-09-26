@@ -37,14 +37,29 @@ export const createProject = async (
  * Get all projects
  */
 export const getProjects = async (): Promise<Project[]> => {
-  const snapshot = await getDocs(
-    collection(db, PROJECTS_COLLECTION)
+  const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL ||
+    "http://127.0.0.1:8000";
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/projects`
   );
 
-  return snapshot.docs.map((document) => ({
-    id: document.id,
-    ...document.data(),
-  })) as Project[];
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch projects: ${response.status}`
+    );
+  }
+
+  const data = await response.json();
+
+  if (!data.success) {
+    throw new Error(
+      "Failed to fetch projects."
+    );
+  }
+
+  return data.projects ?? [];
 };
 
 /**
