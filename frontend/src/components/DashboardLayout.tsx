@@ -141,19 +141,26 @@ function DashboardLayout({
 
 
 
-          <button
-            className="nav-item"
-          >
+       <NavLink
+  to="/predictions"
+  className={({ isActive }) =>
+    `nav-item ${
+      isActive
+        ? "active"
+        : ""
+    }`
+  }
+>
 
-            <TriangleAlert
-              size={20}
-            />
+  <TriangleAlert
+    size={20}
+  />
 
-            <span>
-              Predictions
-            </span>
+  <span>
+    Predictions
+  </span>
 
-          </button>
+</NavLink>
 
 
 

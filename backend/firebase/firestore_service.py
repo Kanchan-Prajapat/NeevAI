@@ -95,6 +95,40 @@ def get_project_by_project_id(
 
 
 # ---------------------------------------------------------------------------
+# Get all projects
+# ---------------------------------------------------------------------------
+
+def get_all_projects() -> List[Dict[str, Any]]:
+    """
+    Get all projects from the Firestore projects collection.
+
+    Returns the complete project records along with
+    their Firestore document IDs.
+    """
+
+    projects_ref = db.collection(
+        "projects"
+    )
+
+    documents = projects_ref.stream()
+
+    projects: List[
+        Dict[str, Any]
+    ] = []
+
+    for document in documents:
+        data = document.to_dict()
+
+        projects.append(
+            {
+                "id": document.id,
+                **data,
+            }
+        )
+
+    return projects
+
+# ---------------------------------------------------------------------------
 # Project snapshots
 # ---------------------------------------------------------------------------
 

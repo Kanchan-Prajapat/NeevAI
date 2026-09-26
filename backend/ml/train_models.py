@@ -1,40 +1,32 @@
 """
-NeevAI Model Training Pipeline
+NeevAI Temporal ML Training Pipeline
 
-Trains:
-1. Delay Prediction Model
-2. Cost Overrun Prediction Model
-3. Risk Score Model
+Experiment:
+    Current project state
+        ↓
+    Next-month physical progress prediction
 
-Uses the exact 24-feature engineering pipeline from
-backend/ml/feature_engineering.py.
+Training:
+    May 2026 snapshot → June 2026 actual progress
 
-Training data must come from a real PAIMANA dataset.
-No synthetic/default project data is generated here.
+Testing:
+    June 2026 snapshot → July 2026 actual progress
+
+IMPORTANT:
+    - Uses only real PAIMANA-derived data.
+    - No synthetic/default project data.
+    - Uses a time-aware train/test split.
+    - Does NOT overwrite the existing NeevAI delay/cost/risk models.
 """
 
-import os
 import json
+import os
+
 import joblib
-import numpy as np
 import pandas as pd
 
-from sklearn.ensemble import (
-    GradientBoostingRegressor,
-    RandomForestRegressor,
-)
-
-from sklearn.model_selection import train_test_split
-
-from sklearn.metrics import (
-    mean_absolute_error,
-    r2_score,
-)
-
-from .feature_engineering import (
-    get_feature_matrix,
-    FEATURE_COLUMNS,
-)
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_absolute_error, r2_score
 
 
 # ---------------------------------------------------------
@@ -45,166 +37,104 @@ CURRENT_DIR = os.path.dirname(
     os.path.abspath(__file__)
 )
 
-BACKEND_DIR = os.path.dirname(
-    CURRENT_DIR
-)
+BACKEND_DIR = os.path.dirname(CURRENT_DIR)
 
-PROJECT_ROOT = os.path.dirname(
-    BACKEND_DIR
-)
+PROJECT_ROOT = os.path.dirname(BACKEND_DIR)
 
 DATA_DIR = os.path.join(
     PROJECT_ROOT,
     "data",
+    "processed",
 )
 
 MODELS_DIR = os.path.join(
     CURRENT_DIR,
     "models",
+    "temporal",
 )
 
 DATASET_PATH = os.path.join(
     DATA_DIR,
-    "paimana_master_dataset.csv",
+    "paimana_temporal_feature_dataset_may_july_2026.csv",
 )
 
 
 # ---------------------------------------------------------
-# Required training columns
+# Model configuration
 # ---------------------------------------------------------
 
-REQUIRED_COLUMNS = [
+MODEL_VERSION = "temporal-progress-1.0.0"
+
+TRAIN_MONTH = "2026-05"
+TEST_MONTH = "2026-06"
+
+TARGET_COLUMN = "next_month_physical_progress_pct"
+
+
+# ---------------------------------------------------------
+# Safe features
+# ---------------------------------------------------------
+
+SAFE_FEATURES = [
     "original_cost_cr",
     "revised_cost_cr",
     "cumulative_expenditure_cr",
     "physical_progress_pct",
-    "financial_progress_pct",
 
-    "total_milestones",
-    "completed_milestones",
-    "delayed_milestones",
+    "cost_revision_pct",
+    "expenditure_to_revised_cost_pct",
+    "physical_minus_financial_progress_proxy_pct",
 
-    "land_acquisition_delay_months",
-    "clearance_delay_months",
-
-    "contractor_delay_score",
-    "geological_delay_score",
-
-    "sector",
-    "state_location",
-
-    "target_time_delay_months",
-    "target_cost_overrun_pct",
-    "target_risk_score",
+    "planned_duration_months",
+    "elapsed_duration_months",
+    "elapsed_planned_duration_ratio",
 ]
 
 
 # ---------------------------------------------------------
-# Validate dataset
+# Dataset validation
 # ---------------------------------------------------------
 
 def validate_dataset(df: pd.DataFrame) -> None:
-    """
-    Validate that the real training dataset contains
-    everything required by the ML pipeline.
-    """
+
+    required_columns = [
+        "project_code",
+        "report_month",
+        TARGET_COLUMN,
+        *SAFE_FEATURES,
+    ]
 
     missing_columns = [
         column
-        for column in REQUIRED_COLUMNS
+        for column in required_columns
         if column not in df.columns
     ]
 
     if missing_columns:
         raise ValueError(
-            "Training dataset is missing required columns: "
+            "Temporal dataset is missing required columns: "
             + ", ".join(missing_columns)
         )
 
-    if len(df) < 20:
+    if df.empty:
         raise ValueError(
-            "Training dataset contains too few records. "
-            f"Found {len(df)} records; at least 20 are required."
-        )
-
-    if df["sector"].isna().any():
-        raise ValueError(
-            "Training dataset contains missing sector values."
-        )
-
-    if df["state_location"].isna().any():
-        raise ValueError(
-            "Training dataset contains missing state_location values."
+            "Temporal training dataset is empty."
         )
 
 
 # ---------------------------------------------------------
-# Validate sector vocabulary
+# Prepare numeric data
 # ---------------------------------------------------------
 
-def validate_sectors(df: pd.DataFrame) -> None:
-    """
-    Make sure every sector in the training data is supported
-    by feature_engineering.py.
-    """
-
-    from .feature_engineering import SECTOR_MAP
-
-    dataset_sectors = set(
-        df["sector"]
-        .dropna()
-        .astype(str)
-        .str.strip()
-        .unique()
-    )
-
-    supported_sectors = set(
-        SECTOR_MAP.keys()
-    )
-
-    unsupported = sorted(
-        dataset_sectors - supported_sectors
-    )
-
-    if unsupported:
-        raise ValueError(
-            "Unsupported sectors found in training dataset: "
-            + ", ".join(unsupported)
-            + ". Add their verified mappings to "
-              "feature_engineering.py before training."
-        )
-
-
-# ---------------------------------------------------------
-# Clean numeric columns
-# ---------------------------------------------------------
-
-def prepare_numeric_columns(
+def prepare_numeric_data(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
 
     df = df.copy()
 
     numeric_columns = [
-        "original_cost_cr",
-        "revised_cost_cr",
-        "cumulative_expenditure_cr",
-        "physical_progress_pct",
-        "financial_progress_pct",
-
-        "total_milestones",
-        "completed_milestones",
-        "delayed_milestones",
-
-        "land_acquisition_delay_months",
-        "clearance_delay_months",
-
-        "contractor_delay_score",
-        "geological_delay_score",
-
-        "target_time_delay_months",
-        "target_cost_overrun_pct",
-        "target_risk_score",
+        *SAFE_FEATURES,
+        TARGET_COLUMN,
     ]
 
     for column in numeric_columns:
@@ -213,438 +143,285 @@ def prepare_numeric_columns(
             errors="coerce",
         )
 
-    if df[numeric_columns].isna().any().any():
-        invalid_columns = (
-            df[numeric_columns]
-            .columns[
-                df[numeric_columns]
-                .isna()
-                .any()
-            ]
-            .tolist()
-        )
-
-        raise ValueError(
-            "Invalid or missing numeric values found in: "
-            + ", ".join(invalid_columns)
-        )
-
     return df
 
 
 # ---------------------------------------------------------
-# Train models
+# Train model
 # ---------------------------------------------------------
 
-def train_and_save_models():
+def train_temporal_progress_model():
 
     print()
-    print("=" * 60)
-    print("NeevAI ML MODEL TRAINING")
-    print("=" * 60)
+    print("=" * 70)
+    print("NeevAI TEMPORAL PROGRESS MODEL")
+    print("=" * 70)
     print()
 
     # -----------------------------------------------------
-    # Check dataset
+    # 1. Check dataset
     # -----------------------------------------------------
+
+    print("[1/7] Checking temporal dataset...")
 
     if not os.path.exists(DATASET_PATH):
-        raise FileNotFoundError(
-            "Real PAIMANA training dataset not found:\n"
-            f"{DATASET_PATH}\n\n"
-            "Place the verified dataset at this location "
-            "before training."
-        )
 
-    print(
-        "[1/7] Loading training dataset..."
-    )
+        raise FileNotFoundError(
+            "Temporal PAIMANA dataset not found:\n"
+            f"{DATASET_PATH}\n\n"
+            "Make sure paimana_temporal_feature_dataset_may_july_2026.csv "
+            "exists inside data/processed/."
+        )
 
     df = pd.read_csv(
         DATASET_PATH
     )
 
     print(
-        f"      Loaded {len(df)} project records."
+        f"      Loaded {len(df):,} project-month records."
     )
 
     # -----------------------------------------------------
-    # Validate
+    # 2. Validate
     # -----------------------------------------------------
 
-    print(
-        "[2/7] Validating dataset..."
-    )
+    print()
+    print("[2/7] Validating dataset...")
 
     validate_dataset(df)
 
-    validate_sectors(df)
+    df["report_month"] = (
+        pd.to_datetime(
+            df["report_month"],
+            errors="coerce",
+        )
+        .dt.strftime("%Y-%m")
+    )
 
-    df = prepare_numeric_columns(df)
+    df = prepare_numeric_data(df)
 
     print(
         "      Dataset validation successful."
     )
 
-    print()
-    print(
-        "      Sector distribution:"
-    )
-
-    sector_counts = (
-        df["sector"]
-        .value_counts()
-    )
-
-    for sector, count in sector_counts.items():
-        print(
-            f"      - {sector}: {count}"
-        )
-
     # -----------------------------------------------------
-    # Feature engineering
+    # 3. Create time-aware train/test datasets
     # -----------------------------------------------------
 
     print()
+    print("[3/7] Creating time-aware train/test split...")
+
+    train_df = df[
+        df["report_month"] == TRAIN_MONTH
+    ].copy()
+
+    test_df = df[
+        df["report_month"] == TEST_MONTH
+    ].copy()
+
     print(
-        "[3/7] Engineering 24 ML features..."
-    )
-
-    X = get_feature_matrix(
-        df
+        f"      Training month: {TRAIN_MONTH}"
     )
 
     print(
-        f"      Feature matrix shape: {X.shape}"
+        f"      Testing month:  {TEST_MONTH}"
     )
 
-    if X.shape[1] != len(
-        FEATURE_COLUMNS
-    ):
+    # -----------------------------------------------------
+    # 4. Remove rows with unavailable model inputs
+    # -----------------------------------------------------
+
+    print()
+    print("[4/7] Preparing model features...")
+
+    train_df = train_df.dropna(
+        subset=[
+            *SAFE_FEATURES,
+            TARGET_COLUMN,
+        ]
+    )
+
+    test_df = test_df.dropna(
+        subset=[
+            *SAFE_FEATURES,
+            TARGET_COLUMN,
+        ]
+    )
+
+    if train_df.empty:
         raise ValueError(
-            "Feature count mismatch. "
-            f"Expected {len(FEATURE_COLUMNS)}, "
-            f"got {X.shape[1]}."
+            "No valid training records remain after "
+            "removing missing feature/target values."
         )
 
-    # -----------------------------------------------------
-    # Targets
-    # -----------------------------------------------------
+    if test_df.empty:
+        raise ValueError(
+            "No valid testing records remain after "
+            "removing missing feature/target values."
+        )
+
+    X_train = train_df[
+        SAFE_FEATURES
+    ]
+
+    y_train = train_df[
+        TARGET_COLUMN
+    ]
+
+    X_test = test_df[
+        SAFE_FEATURES
+    ]
+
+    y_test = test_df[
+        TARGET_COLUMN
+    ]
 
     print(
-        "[4/7] Preparing prediction targets..."
-    )
-
-    y_delay = (
-        df["target_time_delay_months"]
-        .values
-    )
-
-    y_cost = (
-        df["target_cost_overrun_pct"]
-        .values
-    )
-
-    y_risk = (
-        df["target_risk_score"]
-        .values
-    )
-
-    # -----------------------------------------------------
-    # Train / test split
-    # -----------------------------------------------------
-
-    print(
-        "[5/7] Creating train/test split..."
-    )
-
-    (
-        X_train,
-        X_test,
-        y_delay_train,
-        y_delay_test,
-        y_cost_train,
-        y_cost_test,
-        y_risk_train,
-        y_risk_test,
-    ) = train_test_split(
-        X,
-        y_delay,
-        y_cost,
-        y_risk,
-        test_size=0.18,
-        random_state=42,
+        f"      Training records: {len(X_train):,}"
     )
 
     print(
-        f"      Training records: {len(X_train)}"
+        f"      Testing records:  {len(X_test):,}"
     )
 
     print(
-        f"      Testing records:  {len(X_test)}"
+        f"      Features: {len(SAFE_FEATURES)}"
     )
 
     # -----------------------------------------------------
-    # Delay model
+    # 5. Train model
     # -----------------------------------------------------
 
     print()
-    print(
-        "[6/7] Training models..."
-    )
+    print("[5/7] Training progress prediction model...")
 
-    print(
-        "      Training Delay Predictor..."
-    )
-
-    delay_model = GradientBoostingRegressor(
+    model = GradientBoostingRegressor(
         n_estimators=220,
-        learning_rate=0.06,
-        max_depth=5,
-        min_samples_split=4,
-        min_samples_leaf=2,
+        learning_rate=0.05,
+        max_depth=4,
+        min_samples_split=5,
+        min_samples_leaf=3,
         subsample=0.9,
         random_state=42,
     )
 
-    delay_model.fit(
+    model.fit(
         X_train,
-        y_delay_train,
-    )
-
-    delay_prediction = (
-        delay_model.predict(
-            X_test
-        )
-    )
-
-    delay_r2 = r2_score(
-        y_delay_test,
-        delay_prediction,
-    )
-
-    delay_mae = mean_absolute_error(
-        y_delay_test,
-        delay_prediction,
+        y_train,
     )
 
     print(
-        f"      Delay R²: {delay_r2:.4f}"
-    )
-
-    print(
-        f"      Delay MAE: {delay_mae:.2f} months"
+        "      Model training completed."
     )
 
     # -----------------------------------------------------
-    # Cost model
+    # 6. Evaluate
     # -----------------------------------------------------
 
+    print()
+    print("[6/7] Evaluating on future-month data...")
+
+    predictions = model.predict(
+        X_test
+    )
+
+    r2 = r2_score(
+        y_test,
+        predictions,
+    )
+
+    mae = mean_absolute_error(
+        y_test,
+        predictions,
+    )
+
+    print()
     print(
-        "      Training Cost Overrun Predictor..."
-    )
-
-    cost_model = GradientBoostingRegressor(
-        n_estimators=200,
-        learning_rate=0.06,
-        max_depth=5,
-        min_samples_split=4,
-        min_samples_leaf=2,
-        subsample=0.9,
-        random_state=42,
-    )
-
-    cost_model.fit(
-        X_train,
-        y_cost_train,
-    )
-
-    cost_prediction = (
-        cost_model.predict(
-            X_test
-        )
-    )
-
-    cost_r2 = r2_score(
-        y_cost_test,
-        cost_prediction,
-    )
-
-    cost_mae = mean_absolute_error(
-        y_cost_test,
-        cost_prediction,
+        f"      R²  : {r2:.4f}"
     )
 
     print(
-        f"      Cost R²: {cost_r2:.4f}"
-    )
-
-    print(
-        f"      Cost MAE: {cost_mae:.2f}%"
+        f"      MAE : {mae:.2f} percentage points"
     )
 
     # -----------------------------------------------------
-    # Risk model
+    # 7. Save model + metadata
     # -----------------------------------------------------
 
-    print(
-        "      Training Risk Score Model..."
-    )
-
-    risk_model = RandomForestRegressor(
-        n_estimators=180,
-        max_depth=9,
-        min_samples_split=3,
-        min_samples_leaf=1,
-        random_state=42,
-    )
-
-    risk_model.fit(
-        X_train,
-        y_risk_train,
-    )
-
-    risk_prediction = (
-        risk_model.predict(
-            X_test
-        )
-    )
-
-    risk_r2 = r2_score(
-        y_risk_test,
-        risk_prediction,
-    )
-
-    risk_mae = mean_absolute_error(
-        y_risk_test,
-        risk_prediction,
-    )
-
-    print(
-        f"      Risk R²: {risk_r2:.4f}"
-    )
-
-    print(
-        f"      Risk MAE: {risk_mae:.2f} points"
-    )
-
-    # -----------------------------------------------------
-    # Save models
-    # -----------------------------------------------------
+    print()
+    print("[7/7] Saving temporal model...")
 
     os.makedirs(
         MODELS_DIR,
         exist_ok=True,
     )
 
-    joblib.dump(
-        delay_model,
-        os.path.join(
-            MODELS_DIR,
-            "delay_model.joblib",
-        ),
+    model_path = os.path.join(
+        MODELS_DIR,
+        "progress_model.joblib",
     )
-
-    joblib.dump(
-        cost_model,
-        os.path.join(
-            MODELS_DIR,
-            "cost_model.joblib",
-        ),
-    )
-
-    joblib.dump(
-        risk_model,
-        os.path.join(
-            MODELS_DIR,
-            "risk_model.joblib",
-        ),
-    )
-
-    # -----------------------------------------------------
-    # Metadata
-    # -----------------------------------------------------
-
-    metadata = {
-        "version": "3.0.0",
-
-        "project": "NeevAI",
-
-        "paimana_scope":
-            "Central Sector Infrastructure Projects (Rs 150 Cr+)",
-
-        "training_dataset":
-            "paimana_master_dataset.csv",
-
-        "feature_count":
-            len(FEATURE_COLUMNS),
-
-        "feature_columns":
-            FEATURE_COLUMNS,
-
-        "supported_sectors":
-            sorted(
-                set(
-                    df["sector"]
-                    .astype(str)
-                    .str.strip()
-                )
-            ),
-
-        "training_records":
-            int(len(df)),
-
-        "test_records":
-            int(len(X_test)),
-
-        "metrics": {
-            "delay_model": {
-                "r2": float(delay_r2),
-                "mae_months": float(delay_mae),
-            },
-
-            "cost_model": {
-                "r2": float(cost_r2),
-                "mae_pct": float(cost_mae),
-            },
-
-            "risk_model": {
-                "r2": float(risk_r2),
-                "mae_points": float(risk_mae),
-            },
-        },
-
-        "feature_importances": {
-            "delay_model": {
-                feature: float(value)
-                for feature, value in zip(
-                    FEATURE_COLUMNS,
-                    delay_model.feature_importances_,
-                )
-            },
-
-            "cost_model": {
-                feature: float(value)
-                for feature, value in zip(
-                    FEATURE_COLUMNS,
-                    cost_model.feature_importances_,
-                )
-            },
-
-            "risk_model": {
-                feature: float(value)
-                for feature, value in zip(
-                    FEATURE_COLUMNS,
-                    risk_model.feature_importances_,
-                )
-            },
-        },
-    }
 
     metadata_path = os.path.join(
         MODELS_DIR,
-        "model_metadata.json",
+        "progress_model_metadata.json",
     )
+
+    joblib.dump(
+        model,
+        model_path,
+    )
+
+    metadata = {
+        "model_version": MODEL_VERSION,
+        "project": "NeevAI",
+
+        "task": (
+            "Next-month physical progress prediction"
+        ),
+
+        "training_month": TRAIN_MONTH,
+
+        "testing_month": TEST_MONTH,
+
+        "dataset": (
+            "paimana_temporal_feature_dataset_may_july_2026.csv"
+        ),
+
+        "training_records": int(
+            len(X_train)
+        ),
+
+        "testing_records": int(
+            len(X_test)
+        ),
+
+        "feature_count": len(
+            SAFE_FEATURES
+        ),
+
+        "feature_columns": SAFE_FEATURES,
+
+        "target": TARGET_COLUMN,
+
+        "metrics": {
+            "r2": float(r2),
+            "mae_percentage_points": float(mae),
+        },
+
+        "data_policy": {
+            "synthetic_data": False,
+            "source": "PAIMANA",
+            "time_aware_split": True,
+        },
+
+        "feature_importances": {
+            feature: float(value)
+            for feature, value in zip(
+                SAFE_FEATURES,
+                model.feature_importances_,
+            )
+        },
+    }
 
     with open(
         metadata_path,
@@ -658,45 +435,30 @@ def train_and_save_models():
             indent=2,
         )
 
-    # -----------------------------------------------------
-    # Complete
-    # -----------------------------------------------------
-
-    print()
-    print(
-        "[7/7] Model artifacts saved."
-    )
-
-    print()
-    print(
-        f"      {MODELS_DIR}"
-    )
-
     print()
     print(
         "      Generated:"
     )
 
     print(
-        "      ✓ delay_model.joblib"
+        "      ✓ progress_model.joblib"
     )
 
     print(
-        "      ✓ cost_model.joblib"
-    )
-
-    print(
-        "      ✓ risk_model.joblib"
-    )
-
-    print(
-        "      ✓ model_metadata.json"
+        "      ✓ progress_model_metadata.json"
     )
 
     print()
-    print("=" * 60)
-    print("MODEL TRAINING COMPLETED SUCCESSFULLY")
-    print("=" * 60)
+    print(
+        f"      Saved to: {MODELS_DIR}"
+    )
+
+    print()
+    print("=" * 70)
+    print(
+        "TEMPORAL MODEL TRAINING COMPLETED"
+    )
+    print("=" * 70)
     print()
 
     return metadata
@@ -707,4 +469,5 @@ def train_and_save_models():
 # ---------------------------------------------------------
 
 if __name__ == "__main__":
-    train_and_save_models()
+
+    train_temporal_progress_model()

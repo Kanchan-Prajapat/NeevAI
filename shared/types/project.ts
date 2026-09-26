@@ -25,6 +25,8 @@ export interface Project {
 
   approvalDate?: TimestampValue | string | null;
 
+  startDate?: TimestampValue | string | null;
+
   originalCostCr?: number | null;
 
   originalCompletionDate?:

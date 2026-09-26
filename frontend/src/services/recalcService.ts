@@ -5,7 +5,7 @@ import type {
 import {
   getProjectByProjectId,
 } from "./projectService";
-import { calculateProjectRisk } from "./RiskService";
+import { calculateProjectRisk } from "./riskService";
 
 import {
   addDoc,
@@ -70,52 +70,27 @@ const getProjectSnapshotsForRecalculation =
 /* ==================================================
    TIMESTAMP CONVERSION
 ================================================== */
-
 const getTimestampMilliseconds = (
   value: ProjectSnapshot["reportDate"]
 ): number => {
-
   if (!value) {
     return 0;
   }
 
+  if (value instanceof Date) {
+    return value.getTime();
+  }
 
-  /*
-   * Date string
-   */
+  if (typeof value === "string") {
+    const date = new Date(value);
 
-  if (
-    typeof value === "string"
-  ) {
-    const date =
-      new Date(value);
-
-    return Number.isNaN(
-      date.getTime()
-    )
+    return Number.isNaN(date.getTime())
       ? 0
       : date.getTime();
   }
 
-
-  /*
-   * Firestore Timestamp
-   */
-
-  if (
-    typeof value === "object" &&
-    value !== null &&
-    typeof value.toDate === "function"
-  ) {
-    return value
-      .toDate()
-      .getTime();
-  }
-
-
   return 0;
 };
-
 
 /* ==================================================
    SORT SNAPSHOTS

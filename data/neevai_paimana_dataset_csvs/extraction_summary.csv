@@ -1,0 +1,4 @@
+month,rows_extracted,unique_project_codes,roads_highways_rows,rows_missing_project_name,rows_missing_expenditure,rows_missing_progress
+2026-05,1987,1987,1149,0,2,2
+2026-06,1847,1847,1022,0,2,2
+2026-07,1775,1775,993,0,1,1

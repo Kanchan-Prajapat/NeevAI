@@ -73,6 +73,14 @@ function EditProjectForm({
         : ""
     );
 
+const [startDate, setStartDate] =
+  useState(
+    typeof project.startDate === "string"
+      ? project.startDate
+      : ""
+  );
+
+
   const [originalCompletionDate, setOriginalCompletionDate] =
     useState(
       typeof project.originalCompletionDate === "string"
@@ -143,6 +151,10 @@ function EditProjectForm({
     if (!approvalDate) {
       return "Approval date is required.";
     }
+
+    if (!startDate) {
+  return "Project start date is required.";
+}
 
     if (!originalCompletionDate) {
       return "Original completion date is required.";
@@ -231,12 +243,14 @@ function EditProjectForm({
           districtOrLocation:
             districtOrLocation.trim() ||
             undefined,
+approvalDate:
+  approvalDate,
 
-          approvalDate:
-            approvalDate,
+startDate:
+  startDate,
 
-          originalCostCr:
-            Number(originalCostCr),
+originalCostCr:
+  Number(originalCostCr),
 
           originalCompletionDate:
             originalCompletionDate,
@@ -564,6 +578,23 @@ function EditProjectForm({
               />
 
             </div>
+
+            <div className="edit-form-group">
+  <label>
+    Project Start Date
+  </label>
+
+  <input
+    type="date"
+    value={startDate}
+    onChange={(e) =>
+      setStartDate(
+        e.target.value
+      )
+    }
+    required
+  />
+</div>
 
 
             <div className="edit-form-group">

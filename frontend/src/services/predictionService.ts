@@ -178,6 +178,39 @@ export interface MLProjectPredictionResponse {
   prediction: MLProjectPrediction;
 }
 
+
+export interface TemporalProgressPrediction {
+  predicted_next_month_physical_progress_pct: number;
+  predicted_progress_change_pct: number;
+  current_physical_progress_pct: number;
+  model_version: string;
+  feature_count: number;
+  feature_columns: string[];
+}
+
+export interface TemporalProgressPredictionResponse {
+  success: boolean;
+
+  predictionType: string;
+
+  project: {
+    projectId: string;
+    projectName: string;
+    domain: string;
+    state?: string;
+  };
+
+  snapshot: {
+    snapshotId: string;
+    reportType: string;
+    reportPeriod: string;
+    reportDate: string;
+  };
+
+  prediction: TemporalProgressPrediction;
+}
+
+
 const ML_API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
   "http://127.0.0.1:8000";
@@ -221,4 +254,153 @@ export const getMLProjectPrediction = async (
 
 console.log("ML API RESPONSE:", data);
   return data as MLProjectPredictionResponse;
+};
+
+
+
+export const getNextMonthProgressPrediction = async (
+  projectId: string
+): Promise<TemporalProgressPredictionResponse> => {
+  const cleanProjectId = projectId.trim();
+
+  if (!cleanProjectId) {
+    throw new Error("Project ID is required.");
+  }
+
+  const response = await fetch(
+    `${ML_API_BASE_URL}/api/predictions/project/${encodeURIComponent(
+      cleanProjectId
+    )}/next-month-progress`
+  );
+
+  let data: unknown;
+
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+      `Temporal prediction API returned an invalid response (${response.status}).`
+    );
+  }
+
+  if (!response.ok) {
+    const detail =
+      typeof data === "object" &&
+      data !== null &&
+      "detail" in data &&
+      typeof (data as { detail?: unknown }).detail === "string"
+        ? (data as { detail: string }).detail
+        : `Temporal prediction failed with status ${response.status}.`;
+
+    throw new Error(detail);
+  }
+
+  console.log(
+    "TEMPORAL PROGRESS API RESPONSE:",
+    data
+  );
+
+  return data as TemporalProgressPredictionResponse;
+};
+
+
+
+// ---------------------------------------------------------
+// FastAPI What-If Scenario Prediction
+// ---------------------------------------------------------
+
+export interface WhatIfScenario {
+  originalCostCr?: number;
+  cumulativeExpenditureCr?: number;
+  physicalProgressPct?: number;
+
+  totalMilestones?: number;
+  completedMilestones?: number;
+  delayedMilestones?: number;
+
+  landAcquisitionDelayMonths?: number;
+  clearanceDelayMonths?: number;
+
+  contractorDelayScore?: number;
+  geologicalDelayScore?: number;
+}
+
+export interface MLScenarioPredictionResponse {
+  success: boolean;
+  simulation: boolean;
+
+  project: {
+    projectId: string;
+    projectName: string;
+    domain: string;
+    state?: string;
+  };
+
+  snapshot: {
+    snapshotId: string;
+    reportType: string;
+    reportPeriod: string;
+    reportDate: string;
+  };
+
+  prediction: MLProjectPrediction;
+
+  overrides: WhatIfScenario;
+}
+
+export const runWhatIfPrediction = async (
+  projectId: string,
+  scenario: WhatIfScenario
+): Promise<MLScenarioPredictionResponse> => {
+
+  const cleanProjectId = projectId.trim();
+
+  if (!cleanProjectId) {
+    throw new Error("Project ID is required.");
+  }
+
+  const response = await fetch(
+    `${ML_API_BASE_URL}/api/predictions/simulate?project_id=${encodeURIComponent(
+      cleanProjectId
+    )}`,
+    {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify(scenario),
+    }
+  );
+
+  let data: unknown;
+
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+      `What-if API returned an invalid response (${response.status}).`
+    );
+  }
+
+  if (!response.ok) {
+
+    const detail =
+      typeof data === "object" &&
+      data !== null &&
+      "detail" in data &&
+      typeof (data as { detail?: unknown }).detail === "string"
+        ? (data as { detail: string }).detail
+        : `What-if prediction failed with status ${response.status}.`;
+
+    throw new Error(detail);
+  }
+
+  console.log(
+    "WHAT-IF ML API RESPONSE:",
+    data
+  );
+
+  return data as MLScenarioPredictionResponse;
 };

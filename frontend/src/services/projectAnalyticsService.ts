@@ -32,9 +32,15 @@ export interface ProjectDashboardItem {
 
   domain: Project["domain"];
 
+  ministry: string;
+
   implementingAgency?: string;
 
+  state?: string;
+
   status?: string;
+
+  originalCostCr?: number | null;
 
   budget: number;
 
@@ -45,9 +51,6 @@ export interface ProjectDashboardItem {
   healthStatus?:
     ProjectSnapshot["healthStatus"];
 
-  /*
-   * Phase 4 risk
-   */
   riskLevel?:
     DerivedMetric["riskLevel"];
 
@@ -56,9 +59,6 @@ export interface ProjectDashboardItem {
   riskComponents?:
     DerivedMetric["riskComponents"];
 
-  /*
-   * Kept for existing dashboard compatibility.
-   */
   dataStatus?:
     Prediction["dataStatus"];
 
@@ -66,7 +66,6 @@ export interface ProjectDashboardItem {
 
   prediction: Prediction | null;
 }
-
 
 /* =========================================
    DASHBOARD ANALYTICS
@@ -505,6 +504,8 @@ export const getDashboardAnalytics =
 
                 domain:
                   project.domain,
+
+                  ministry: project.ministry,
 
                 implementingAgency:
                   project.implementingAgency,

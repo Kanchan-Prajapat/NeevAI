@@ -43,6 +43,21 @@ MODELS_DIR = os.path.join(
     "models",
 )
 
+TEMPORAL_MODELS_DIR = os.path.join(
+    MODELS_DIR,
+    "temporal",
+)
+
+TEMPORAL_PROGRESS_MODEL_PATH = os.path.join(
+    TEMPORAL_MODELS_DIR,
+    "progress_model.joblib",
+)
+
+TEMPORAL_PROGRESS_METADATA_PATH = os.path.join(
+    TEMPORAL_MODELS_DIR,
+    "progress_model_metadata.json",
+)
+
 DELAY_MODEL_PATH = os.path.join(
     MODELS_DIR,
     "delay_model.joblib",
@@ -72,7 +87,8 @@ _delay_model = None
 _cost_model = None
 _risk_model = None
 _model_metadata = None
-
+_temporal_progress_model = None
+_temporal_progress_metadata = None
 
 # ---------------------------------------------------------------------------
 # Model loading
@@ -157,6 +173,378 @@ def load_models() -> None:
             )
     else:
         _model_metadata = {}
+
+
+TEMPORAL_PROGRESS_FEATURES = [
+    "original_cost_cr",
+    "revised_cost_cr",
+    "cumulative_expenditure_cr",
+    "physical_progress_pct",
+    "cost_revision_pct",
+    "expenditure_to_revised_cost_pct",
+    "physical_minus_financial_progress_proxy_pct",
+    "planned_duration_months",
+    "elapsed_duration_months",
+    "elapsed_planned_duration_ratio",
+]
+
+def load_temporal_progress_model():
+    """
+    Safely load the temporal next-month progress model.
+
+    This is intentionally separate from the legacy delay/cost/risk
+    models so the existing prediction pipeline remains unchanged.
+    """
+
+    global _temporal_progress_model
+    global _temporal_progress_metadata
+
+    if (
+        _temporal_progress_model is not None
+        and _temporal_progress_metadata is not None
+    ):
+        return (
+            _temporal_progress_model,
+            _temporal_progress_metadata,
+        )
+
+    if not os.path.exists(TEMPORAL_PROGRESS_MODEL_PATH):
+        raise FileNotFoundError(
+            "Temporal progress model not found: "
+            f"{TEMPORAL_PROGRESS_MODEL_PATH}"
+        )
+
+    if not os.path.exists(TEMPORAL_PROGRESS_METADATA_PATH):
+        raise FileNotFoundError(
+            "Temporal progress model metadata not found: "
+            f"{TEMPORAL_PROGRESS_METADATA_PATH}"
+        )
+
+    model = joblib.load(TEMPORAL_PROGRESS_MODEL_PATH)
+
+    with open(
+        TEMPORAL_PROGRESS_METADATA_PATH,
+        "r",
+        encoding="utf-8",
+    ) as file:
+        metadata = json.load(file)
+
+    if not isinstance(metadata, dict):
+        raise ValueError(
+            "Temporal progress model metadata must be a JSON object."
+        )
+
+    feature_columns = metadata.get("feature_columns")
+
+    if not isinstance(feature_columns, list):
+        raise ValueError(
+            "Temporal progress model metadata is missing "
+            "'feature_columns'."
+        )
+
+    if len(feature_columns) != 10:
+        raise ValueError(
+            "Temporal progress model must use exactly 10 features. "
+            f"Found: {len(feature_columns)}"
+        )
+
+    _temporal_progress_model = model
+    _temporal_progress_metadata = metadata
+
+    return (
+        _temporal_progress_model,
+        _temporal_progress_metadata,
+    )
+
+
+def build_temporal_progress_input(
+    project: Dict[str, Any],
+    snapshot: Dict[str, Any],
+) -> pd.DataFrame:
+    """
+    Build the exact 10-feature input required by the
+    temporal next-month physical-progress model.
+    """
+
+    def required_float(
+        value: Any,
+        field_name: str,
+    ) -> float:
+        number = _to_float(value)
+
+        if number is None:
+            raise ValueError(
+                f"Temporal prediction requires '{field_name}'."
+            )
+
+        return float(number)
+
+    original_cost = (
+        snapshot.get("originalCostCr")
+        if snapshot.get("originalCostCr") is not None
+        else project.get("originalCostCr")
+    )
+
+    revised_cost = (
+        snapshot.get("revisedCostCr")
+        if snapshot.get("revisedCostCr") is not None
+        else original_cost
+    )
+
+    expenditure = required_float(
+        snapshot.get("cumulativeExpenditureCr"),
+        "cumulativeExpenditureCr",
+    )
+
+    physical_progress = required_float(
+        snapshot.get("physicalProgressPct"),
+        "physicalProgressPct",
+    )
+
+    original_cost = required_float(
+        original_cost,
+        "originalCostCr",
+    )
+
+    revised_cost = required_float(
+        revised_cost,
+        "revisedCostCr",
+    )
+
+    if original_cost <= 0:
+        raise ValueError(
+            "Original cost must be greater than 0."
+        )
+
+    if revised_cost <= 0:
+        raise ValueError(
+            "Revised cost must be greater than 0."
+        )
+
+    if expenditure < 0:
+        raise ValueError(
+            "Cumulative expenditure cannot be negative."
+        )
+
+    if not 0 <= physical_progress <= 100:
+        raise ValueError(
+            "Physical progress must be between 0 and 100."
+        )
+
+    # Financial progress proxy.
+    financial_progress = (
+        expenditure / revised_cost
+    ) * 100.0
+
+    # Cost revision percentage.
+    cost_revision_pct = (
+        (revised_cost - original_cost)
+        / original_cost
+    ) * 100.0
+
+    # Difference between physical and financial progress.
+    physical_minus_financial_progress_proxy_pct = (
+        physical_progress - financial_progress
+    )
+
+    # Expenditure as a percentage of revised cost.
+    expenditure_to_revised_cost_pct = (
+        expenditure / revised_cost
+    ) * 100.0
+
+    # Resolve project dates.
+    approval_date = project.get("approvalDate")
+    start_date = project.get("startDate")
+
+    completion_date = (
+        snapshot.get("originalCompletionDate")
+        if snapshot.get("originalCompletionDate") is not None
+        else project.get("originalCompletionDate")
+    )
+
+    report_date = snapshot.get("reportDate")
+
+    def parse_date(value: Any):
+        if value is None:
+            return None
+
+        if isinstance(value, str):
+            parsed = pd.to_datetime(
+                value,
+                errors="coerce",
+            )
+
+            if pd.isna(parsed):
+                return None
+
+            return parsed
+
+        if isinstance(value, dict):
+            seconds = value.get("seconds")
+
+            if seconds is not None:
+                return pd.to_datetime(
+                    int(seconds),
+                    unit="s",
+                    errors="coerce",
+                )
+
+        return None
+
+    start_dt = parse_date(start_date)
+    approval_dt = parse_date(approval_date)
+    completion_dt = parse_date(completion_date)
+    report_dt = parse_date(report_date)
+
+    # Use actual project start date first.
+    if start_dt is None:
+        start_dt = approval_dt
+
+    if start_dt is None:
+        raise ValueError(
+            "Temporal prediction requires project start date."
+        )
+
+    if report_dt is None:
+        raise ValueError(
+            "Temporal prediction requires snapshot report date."
+        )
+
+    if completion_dt is None:
+        raise ValueError(
+            "Temporal prediction requires original completion date."
+        )
+
+    planned_duration_days = (
+        completion_dt - start_dt
+    ).days
+
+    elapsed_duration_days = (
+        report_dt - start_dt
+    ).days
+
+    if planned_duration_days <= 0:
+        raise ValueError(
+            "Project planned duration must be greater than 0."
+        )
+
+    planned_duration_months = (
+        planned_duration_days / 30.4375
+    )
+
+    elapsed_duration_months = max(
+        0.0,
+        elapsed_duration_days / 30.4375,
+    )
+
+    elapsed_planned_duration_ratio = (
+        elapsed_duration_months
+        / planned_duration_months
+    )
+
+    row = {
+        "original_cost_cr": original_cost,
+        "revised_cost_cr": revised_cost,
+        "cumulative_expenditure_cr": expenditure,
+        "physical_progress_pct": physical_progress,
+        "cost_revision_pct": cost_revision_pct,
+        "expenditure_to_revised_cost_pct": (
+            expenditure_to_revised_cost_pct
+        ),
+        "physical_minus_financial_progress_proxy_pct": (
+            physical_minus_financial_progress_proxy_pct
+        ),
+        "planned_duration_months": (
+            planned_duration_months
+        ),
+        "elapsed_duration_months": (
+            elapsed_duration_months
+        ),
+        "elapsed_planned_duration_ratio": (
+            elapsed_planned_duration_ratio
+        ),
+    }
+
+    return pd.DataFrame(
+        [row],
+        columns=TEMPORAL_PROGRESS_FEATURES,
+    )
+
+def predict_next_month_progress(
+    project: Dict[str, Any],
+    snapshot: Dict[str, Any],
+) -> Dict[str, Any]:
+    """
+    Predict the project's physical progress for the next month
+    using the temporal progress model.
+    """
+
+    model, metadata = load_temporal_progress_model()
+
+    feature_df = build_temporal_progress_input(
+        project,
+        snapshot,
+    )
+
+    expected_features = metadata.get(
+        "feature_columns",
+        TEMPORAL_PROGRESS_FEATURES,
+    )
+
+    if expected_features != TEMPORAL_PROGRESS_FEATURES:
+        raise ValueError(
+            "Temporal model feature schema mismatch. "
+            f"Expected: {TEMPORAL_PROGRESS_FEATURES}, "
+            f"Found: {expected_features}"
+        )
+
+    prediction = model.predict(feature_df)
+
+    if prediction is None or len(prediction) == 0:
+        raise ValueError(
+            "Temporal progress model returned no prediction."
+        )
+
+    predicted_progress = float(prediction[0])
+
+    # Physical progress is always bounded between 0 and 100.
+    predicted_progress = max(
+        0.0,
+        min(100.0, predicted_progress),
+    )
+
+    current_progress = float(
+        feature_df["physical_progress_pct"].iloc[0]
+    )
+
+    predicted_progress_change = (
+        predicted_progress - current_progress
+    )
+
+    return {
+        "predicted_next_month_physical_progress_pct": round(
+            predicted_progress,
+            2,
+        ),
+        "predicted_progress_change_pct": round(
+            predicted_progress_change,
+            2,
+        ),
+        "current_physical_progress_pct": round(
+            current_progress,
+            2,
+        ),
+        "model_version": metadata.get(
+            "model_version",
+            "unknown",
+        ),
+        "feature_count": len(
+            TEMPORAL_PROGRESS_FEATURES
+        ),
+        "feature_columns": TEMPORAL_PROGRESS_FEATURES,
+    }
+
+
 
 
 # ---------------------------------------------------------------------------
@@ -955,3 +1343,73 @@ def get_model_status() -> Dict[str, Any]:
         "models_directory":
             MODELS_DIR,
     }
+
+if __name__ == "__main__":
+    print("\n=== Temporal Progress Prediction Test ===\n")
+
+    test_project = {
+        "projectId": "TEST-617887",
+        "projectName": "Temporal Model Test Project",
+        "domain": "Roads & Highways",
+        "originalCostCr": 379.23,
+        "startDate": "2020-12-01",
+        "approvalDate": "2020-12-01",
+        "originalCompletionDate": "2023-10-01",
+    }
+
+    test_snapshot = {
+        "projectId": "TEST-617887",
+        "reportType": "Monthly",
+        "reportPeriod": "January 2026",
+        "reportDate": "2026-01-31",
+        "originalCostCr": 379.23,
+        "revisedCostCr": 379.23,
+        "cumulativeExpenditureCr": 179.08,
+        "physicalProgressPct": 98.0,
+        "originalCompletionDate": "2023-10-01",
+    }
+
+    try:
+        result = predict_next_month_progress(
+            project=test_project,
+            snapshot=test_snapshot,
+        )
+
+        print("Temporal prediction successful.\n")
+
+        print(
+            "Current physical progress:",
+            result[
+                "current_physical_progress_pct"
+            ],
+        )
+
+        print(
+            "Predicted next-month physical progress:",
+            result[
+                "predicted_next_month_physical_progress_pct"
+            ],
+        )
+
+        print(
+            "Predicted progress change:",
+            result[
+                "predicted_progress_change_pct"
+            ],
+        )
+
+        print(
+            "Model version:",
+            result["model_version"],
+        )
+
+        print(
+            "Feature count:",
+            result["feature_count"],
+        )
+
+    except Exception as error:
+        print(
+            "\nTemporal prediction test failed:",
+            str(error),
+        )

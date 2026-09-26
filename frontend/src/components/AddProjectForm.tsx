@@ -60,12 +60,14 @@ function AddProjectForm({
      PROJECT DATES
   ========================================= */
 
-  const [approvalDate, setApprovalDate] =
-    useState("");
+const [approvalDate, setApprovalDate] =
+  useState("");
 
-  const [originalCompletionDate, setOriginalCompletionDate] =
-    useState("");
+const [startDate, setStartDate] =
+  useState("");
 
+const [originalCompletionDate, setOriginalCompletionDate] =
+  useState("");
 
   /* =========================================
      FINANCIAL
@@ -126,13 +128,17 @@ function AddProjectForm({
       return "Implementing agency is required.";
     }
 
-    if (!approvalDate) {
-      return "Approval date is required.";
-    }
+ if (!approvalDate) {
+  return "Approval date is required.";
+}
 
-    if (!originalCompletionDate) {
-      return "Original completion date is required.";
-    }
+if (!startDate) {
+  return "Project start date is required.";
+}
+
+if (!originalCompletionDate) {
+  return "Original completion date is required.";
+}
 
     if (!originalCostCr) {
       return "Original project cost is required.";
@@ -218,11 +224,14 @@ function AddProjectForm({
           districtOrLocation.trim() ||
           undefined,
 
-        approvalDate:
-          approvalDate,
+     approvalDate:
+  approvalDate,
 
-        originalCostCr:
-          Number(originalCostCr),
+startDate:
+  startDate,
+
+originalCostCr:
+  Number(originalCostCr),
 
         originalCompletionDate:
           originalCompletionDate,
@@ -592,6 +601,25 @@ function AddProjectForm({
 
             </div>
 
+
+<div className="form-field">
+
+  <label>
+    Project Start Date
+  </label>
+
+  <input
+    type="date"
+    value={startDate}
+    onChange={(e) =>
+      setStartDate(
+        e.target.value
+      )
+    }
+    required
+  />
+
+</div>
 
             <div className="form-field">
 
