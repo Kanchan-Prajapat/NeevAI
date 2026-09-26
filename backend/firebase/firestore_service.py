@@ -1,4 +1,5 @@
 import os
+import json
 from typing import Any, Dict, List, Optional
 
 import firebase_admin
@@ -22,42 +23,62 @@ LOCAL_SERVICE_ACCOUNT_PATH = os.path.join(
     "firebase-service-account.json",
 )
 
-RENDER_SERVICE_ACCOUNT_PATH = (
-    "/etc/secrets/firebase-service-account.json"
-)
-
-SERVICE_ACCOUNT_PATH = (
-    RENDER_SERVICE_ACCOUNT_PATH
-    if os.path.exists(RENDER_SERVICE_ACCOUNT_PATH)
-    else LOCAL_SERVICE_ACCOUNT_PATH
-)
-
-
 
 def _initialize_firebase() -> None:
     """
     Initialize Firebase Admin SDK once.
+
+    Production:
+    Uses FIREBASE_SERVICE_ACCOUNT_JSON environment variable.
+
+    Local development:
+    Falls back to firebase-service-account.json.
     """
 
     if firebase_admin._apps:
         return
 
+    firebase_service_account_json = os.getenv(
+        "FIREBASE_SERVICE_ACCOUNT_JSON"
+    )
+
+    if firebase_service_account_json:
+        try:
+            service_account_info = json.loads(
+                firebase_service_account_json
+            )
+
+            credential = credentials.Certificate(
+                service_account_info
+            )
+
+            firebase_admin.initialize_app(
+                credential
+            )
+
+            return
+
+        except json.JSONDecodeError as error:
+            raise ValueError(
+                "FIREBASE_SERVICE_ACCOUNT_JSON contains invalid JSON."
+            ) from error
+
     if not os.path.exists(
-        SERVICE_ACCOUNT_PATH
+        LOCAL_SERVICE_ACCOUNT_PATH
     ):
         raise FileNotFoundError(
-            "Firebase service account file not found: "
-            f"{SERVICE_ACCOUNT_PATH}"
+            "Firebase credentials not found. "
+            "Set FIREBASE_SERVICE_ACCOUNT_JSON "
+            "or provide firebase-service-account.json locally."
         )
 
     credential = credentials.Certificate(
-        SERVICE_ACCOUNT_PATH
+        LOCAL_SERVICE_ACCOUNT_PATH
     )
 
     firebase_admin.initialize_app(
         credential
     )
-
 
 _initialize_firebase()
 
