@@ -3,6 +3,10 @@ import {
   useState,
 } from "react";
 
+import {
+  useSearchParams,
+} from "react-router-dom";
+
 import AddProjectForm from "./AddProjectForm";
 
 import DashboardLayout from "./DashboardLayout";
@@ -14,6 +18,7 @@ import AddProjectSnapshotForm from "./AddProjectSnapshotForm";
 
 import {
   getProjectByProjectId,
+  deleteProject,
 } from "../services/projectService";
 
 import {
@@ -37,6 +42,11 @@ import "./Projects.css";
 
 
 function Projects() {
+
+  const [
+    searchParams,
+    setSearchParams,
+  ] = useSearchParams();
 
   /* ==============================
      STATE
@@ -226,6 +236,24 @@ const [
       }
 
     };
+
+
+  useEffect(() => {
+
+    const openProjectId =
+      searchParams.get("open");
+
+    if (!openProjectId || selectedProject) {
+      return;
+    }
+
+    handleOpenProject(openProjectId).then(() => {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete("open");
+      setSearchParams(nextParams, { replace: true });
+    });
+
+  }, [searchParams, selectedProject]);
 
 
   /* ==============================
@@ -429,6 +457,21 @@ if (
 
   onAddSnapshot={() => {
     setShowAddSnapshotForm(true);
+  }}
+
+  onDelete={async () => {
+    if (!selectedProject.id) {
+      throw new Error(
+        "Project document ID is missing."
+      );
+    }
+
+    await deleteProject(
+      selectedProject.id
+    );
+
+    setSelectedProject(null);
+    await loadProjects();
   }}
 />
 

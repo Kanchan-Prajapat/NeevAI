@@ -54,6 +54,7 @@ interface ProjectDetailsProps {
   onBack: () => void;
   onEdit: () => void;
   onAddSnapshot?: () => void;
+  onDelete?: () => Promise<void> | void;
 }
 
 /* =========================================
@@ -938,6 +939,7 @@ function ProjectDetails({
   onBack,
   onEdit,
   onAddSnapshot,
+  onDelete,
 }: ProjectDetailsProps) {
   const [latestSnapshot, setLatestSnapshot] = useState<ProjectSnapshot | null>(null);
   const [projectSnapshots, setProjectSnapshots] = useState<ProjectSnapshot[]>([]);
@@ -951,6 +953,32 @@ const [intelligenceResponse, setIntelligenceResponse] =
   useState<ProjectIntelligenceResponse | null>(null);
 const [intelligenceLoading, setIntelligenceLoading] = useState(false);
 const [intelligenceError, setIntelligenceError] = useState<string | null>(null);
+const [deleteConfirming, setDeleteConfirming] = useState(false);
+const [deleting, setDeleting] = useState(false);
+const [deleteError, setDeleteError] = useState<string | null>(null);
+
+const handleDeleteProject = async () => {
+  if (!onDelete || deleting) {
+    return;
+  }
+
+  if (!deleteConfirming) {
+    setDeleteConfirming(true);
+    setDeleteError(null);
+    return;
+  }
+
+  try {
+    setDeleting(true);
+    setDeleteError(null);
+    await onDelete();
+  } catch (err) {
+    console.error("Failed to delete project:", err);
+    setDeleteError("Failed to delete project.");
+    setDeleting(false);
+    setDeleteConfirming(false);
+  }
+};
 
 const handleAskProjectIntelligence = async () => {
   const query = intelligenceQuery.trim();
@@ -1947,8 +1975,29 @@ return "Calculated execution risk remained stable across the available snapshots
           >
             Edit Project
           </button>
+
+          {onDelete && (
+            <button
+              type="button"
+              className="delete-project-button"
+              onClick={handleDeleteProject}
+              disabled={deleting}
+            >
+              {deleting
+                ? "Deleting..."
+                : deleteConfirming
+                  ? "Confirm Delete"
+                  : "Delete Project"}
+            </button>
+          )}
         </div>
       </div>
+
+      {deleteError && (
+        <div className="delete-project-error">
+          {deleteError}
+        </div>
+      )}
 
       {/* =====================================
           BASIC INFORMATION

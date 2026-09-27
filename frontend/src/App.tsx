@@ -8,6 +8,8 @@ import Dashboard from "./components/Dashboard";
 import Projects from "./components/Projects";
 import Analytics from "./components/Analytics";
 import Predictions from "./components/Predictions";
+import Reports from "./components/Reports";
+import Settings from "./components/Settings";
 
 
 function App() {
@@ -48,6 +50,18 @@ function App() {
   path="/predictions"
   element={<Predictions />}
 />
+
+
+        <Route
+          path="/reports"
+          element={<Reports />}
+        />
+
+
+        <Route
+          path="/settings"
+          element={<Settings />}
+        />
 
 
       </Routes>
