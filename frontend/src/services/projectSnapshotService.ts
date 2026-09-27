@@ -53,17 +53,64 @@ export const createProjectSnapshot = async (
 export const getProjectSnapshots = async (
   projectId: string
 ): Promise<ProjectSnapshot[]> => {
-  const snapshotsQuery = query(
-    collection(db, SNAPSHOTS_COLLECTION),
-    where("projectId", "==", projectId)
+  const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL ||
+    "http://127.0.0.1:8000";
+
+  const cleanProjectId = projectId.trim();
+
+  if (!cleanProjectId) {
+    throw new Error("Project ID is required.");
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/projects/${encodeURIComponent(
+      cleanProjectId
+    )}/snapshots`
   );
 
-  const snapshot = await getDocs(snapshotsQuery);
+  let data: unknown;
 
-  const snapshots = snapshot.docs.map((document) => ({
-    id: document.id,
-    ...document.data(),
-  })) as ProjectSnapshot[];
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+      `Snapshot API returned an invalid response (${response.status}).`
+    );
+  }
+
+  if (!response.ok) {
+    const detail =
+      typeof data === "object" &&
+      data !== null &&
+      "detail" in data &&
+      typeof (data as { detail?: unknown }).detail === "string"
+        ? (data as { detail: string }).detail
+        : `Snapshot API failed with status ${response.status}.`;
+
+    throw new Error(detail);
+  }
+
+  if (
+    typeof data !== "object" ||
+    data === null ||
+    !("success" in data) ||
+    (data as { success?: unknown }).success !== true
+  ) {
+    throw new Error(
+      "Snapshot API returned an unsuccessful response."
+    );
+  }
+
+  const snapshots =
+    "snapshots" in data &&
+    Array.isArray(
+      (data as { snapshots?: unknown }).snapshots
+    )
+      ? ((data as {
+          snapshots: ProjectSnapshot[];
+        }).snapshots ?? [])
+      : [];
 
   return snapshots.sort((a, b) => {
     const dateA = new Date(

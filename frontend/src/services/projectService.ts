@@ -4,7 +4,6 @@ import {
   deleteDoc,
   doc,
   getDoc,
-  getDocs,
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
@@ -45,23 +44,51 @@ export const getProjects = async (): Promise<Project[]> => {
     `${API_BASE_URL}/api/projects`
   );
 
+  let data: unknown;
+
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+      `Projects API returned an invalid response (${response.status}).`
+    );
+  }
+
   if (!response.ok) {
+    const detail =
+      typeof data === "object" &&
+      data !== null &&
+      "detail" in data &&
+      typeof (data as { detail?: unknown }).detail === "string"
+        ? (data as { detail: string }).detail
+        : `Projects API failed with status ${response.status}.`;
+
+    throw new Error(detail);
+  }
+
+  if (
+    typeof data !== "object" ||
+    data === null ||
+    !("success" in data) ||
+    (data as { success?: unknown }).success !== true
+  ) {
     throw new Error(
-      `Failed to fetch projects: ${response.status}`
+      "Projects API returned an unsuccessful response."
     );
   }
 
-  const data = await response.json();
+  const projects =
+    "projects" in data &&
+    Array.isArray(
+      (data as { projects?: unknown }).projects
+    )
+      ? ((data as {
+          projects: Project[];
+        }).projects ?? [])
+      : [];
 
-  if (!data.success) {
-    throw new Error(
-      "Failed to fetch projects."
-    );
-  }
-
-  return data.projects ?? [];
+  return projects;
 };
-
 /**
  * Get project using Firestore document ID
  */

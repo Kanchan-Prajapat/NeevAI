@@ -1,11 +1,3 @@
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
-
-import { db } from "../firebase/firebase";
 import type { Project } from "../../../shared/types/project";
 import type { ProjectSnapshot } from "../../../shared/types/projectSnapshot";
 
@@ -56,125 +48,173 @@ const getLatestSnapshot = (
 export const getBenchmarkProjects = async (
   currentProject: Project
 ): Promise<BenchmarkProject[]> => {
-  const projectsRef = collection(db, "projects");
+  const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL ||
+    "http://127.0.0.1:8000";
 
-  const projectQuery = query(
-    projectsRef,
-    where("domain", "==", currentProject.domain)
+  const projectsResponse = await fetch(
+    `${API_BASE_URL}/api/projects`
   );
 
-  const projectSnapshot = await getDocs(projectQuery);
+  let projectsData: unknown;
+
+  try {
+    projectsData = await projectsResponse.json();
+  } catch {
+    throw new Error(
+      `Projects API returned an invalid response (${projectsResponse.status}).`
+    );
+  }
+
+  if (!projectsResponse.ok) {
+    throw new Error(
+      `Projects API failed with status ${projectsResponse.status}.`
+    );
+  }
+
+  if (
+    typeof projectsData !== "object" ||
+    projectsData === null ||
+    !("success" in projectsData) ||
+    (projectsData as { success?: unknown }).success !== true
+  ) {
+    throw new Error(
+      "Projects API returned an unsuccessful response."
+    );
+  }
+
+  const projects =
+    "projects" in projectsData &&
+    Array.isArray(
+      (projectsData as { projects?: unknown }).projects
+    )
+      ? ((projectsData as {
+          projects: Project[];
+        }).projects ?? [])
+      : [];
+
+  const comparableProjects = projects.filter(
+    (project) =>
+      project.projectId !== currentProject.projectId &&
+      project.domain === currentProject.domain
+  );
 
   const results: BenchmarkProject[] = [];
 
-  for (const projectDoc of projectSnapshot.docs) {
-    const project = {
-      id: projectDoc.id,
-      ...projectDoc.data(),
-    } as Project;
-
-    // Don't compare the project with itself.
-    if (
-      project.projectId === currentProject.projectId
-    ) {
+  for (const project of comparableProjects) {
+    if (!project.projectId) {
       continue;
     }
 
-    const snapshotsRef = collection(
-      db,
-      "projectSnapshots"
-    );
+    try {
+      const snapshotResponse = await fetch(
+        `${API_BASE_URL}/api/projects/${encodeURIComponent(
+          project.projectId
+        )}/snapshots`
+      );
 
-    const snapshotQuery = query(
-      snapshotsRef,
-      where(
-        "projectId",
-        "==",
-        project.projectId
-      )
-    );
-
-    const snapshotDocs = await getDocs(snapshotQuery);
-
-    const snapshots = snapshotDocs.docs.map(
-      (snapshotDoc) =>
-        ({
-          id: snapshotDoc.id,
-          ...snapshotDoc.data(),
-        }) as ProjectSnapshot
-    );
-
-    const latestSnapshot =
-      getLatestSnapshot(snapshots);
-
-    if (!latestSnapshot) {
-      continue;
-    }
-
-    const originalCost =
-      latestSnapshot.originalCostCr ??
-      project.originalCostCr ??
-      null;
-
-    const revisedCost =
-      latestSnapshot.revisedCostCr ??
-      null;
-
-    let costVariancePct: number | null = null;
-
-    if (
-      originalCost !== null &&
-      revisedCost !== null &&
-      originalCost > 0
-    ) {
-      costVariancePct =
-        ((revisedCost - originalCost) /
-          originalCost) *
-        100;
-    }
-
-    let financialProgressPct: number | null = null;
-
-    if (
-      revisedCost !== null &&
-      revisedCost > 0 &&
-      latestSnapshot.cumulativeExpenditureCr !==
-        null &&
-      latestSnapshot.cumulativeExpenditureCr !==
-        undefined
-    ) {
-      financialProgressPct =
-        (latestSnapshot.cumulativeExpenditureCr /
-          revisedCost) *
-        100;
-    }
-
-    let scheduleStatus = "Unknown";
-
-    if (
-      latestSnapshot.revisedCompletionDate
-    ) {
-      const completionDate =
-        getDateValue(
-          latestSnapshot.revisedCompletionDate
-        );
-
-      if (completionDate > 0) {
-        scheduleStatus =
-          completionDate <
-          Date.now()
-            ? "Delayed / Past Target"
-            : "Within Target";
+      if (!snapshotResponse.ok) {
+        continue;
       }
-    }
 
-    results.push({
-      project,
-      snapshot: latestSnapshot,
-      costVariancePct,
-      financialProgressPct,
-      scheduleStatus,
-    });
+      const snapshotData = await snapshotResponse.json();
+
+      if (
+        typeof snapshotData !== "object" ||
+        snapshotData === null ||
+        !("success" in snapshotData) ||
+        (snapshotData as { success?: unknown }).success !== true
+      ) {
+        continue;
+      }
+
+      const snapshots =
+        "snapshots" in snapshotData &&
+        Array.isArray(
+          (snapshotData as { snapshots?: unknown }).snapshots
+        )
+          ? ((snapshotData as {
+              snapshots: ProjectSnapshot[];
+            }).snapshots ?? [])
+          : [];
+
+      const latestSnapshot =
+        getLatestSnapshot(snapshots);
+
+      if (!latestSnapshot) {
+        continue;
+      }
+
+      const originalCost =
+        latestSnapshot.originalCostCr ??
+        project.originalCostCr ??
+        null;
+
+      const revisedCost =
+        latestSnapshot.revisedCostCr ??
+        null;
+
+      let costVariancePct: number | null = null;
+
+      if (
+        originalCost !== null &&
+        revisedCost !== null &&
+        originalCost > 0
+      ) {
+        costVariancePct =
+          ((revisedCost - originalCost) /
+            originalCost) *
+          100;
+      }
+
+      let financialProgressPct: number | null =
+        null;
+
+      if (
+        revisedCost !== null &&
+        revisedCost > 0 &&
+        latestSnapshot.cumulativeExpenditureCr !==
+          null &&
+        latestSnapshot.cumulativeExpenditureCr !==
+          undefined
+      ) {
+        financialProgressPct =
+          (latestSnapshot.cumulativeExpenditureCr /
+            revisedCost) *
+          100;
+      }
+
+      let scheduleStatus = "Unknown";
+
+      if (
+        latestSnapshot.revisedCompletionDate
+      ) {
+        const completionDate =
+          getDateValue(
+            latestSnapshot.revisedCompletionDate
+          );
+
+        if (completionDate > 0) {
+          scheduleStatus =
+            completionDate < Date.now()
+              ? "Delayed / Past Target"
+              : "Within Target";
+        }
+      }
+
+      results.push({
+        project,
+        snapshot: latestSnapshot,
+        costVariancePct,
+        financialProgressPct,
+        scheduleStatus,
+      });
+    } catch {
+      // Ignore individual benchmark project failures
+      // so one unavailable snapshot does not break
+      // the complete benchmarking section.
+      continue;
+    }
   }
 
   return results;

@@ -68,23 +68,66 @@ export const getPredictionById = async (
 export const getPredictionsByProjectId = async (
   projectId: string
 ): Promise<Prediction[]> => {
-  const predictionQuery = query(
-    collection(db, COLLECTION_NAME),
-    where("projectId", "==", projectId),
-    orderBy("createdAt", "desc")
+  const cleanProjectId = projectId.trim();
+
+  if (!cleanProjectId) {
+    throw new Error("Project ID is required.");
+  }
+
+  const response = await fetch(
+    `${ML_API_BASE_URL}/api/predictions/project/${encodeURIComponent(
+      cleanProjectId
+    )}`
   );
 
-  const querySnapshot = await getDocs(predictionQuery);
+  let data: unknown;
 
-  return querySnapshot.docs.map(
-    (document) =>
-      ({
-        id: document.id,
-        ...document.data(),
-      }) as Prediction
-  );
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+      `Prediction API returned an invalid response (${response.status}).`
+    );
+  }
+
+  if (!response.ok) {
+    const detail =
+      typeof data === "object" &&
+      data !== null &&
+      "detail" in data &&
+      typeof (data as { detail?: unknown }).detail === "string"
+        ? (data as { detail: string }).detail
+        : `Prediction API failed with status ${response.status}.`;
+
+    throw new Error(detail);
+  }
+
+  /*
+   * The ML endpoint returns the current prediction
+   * inside the `prediction` property.
+   *
+   * ProjectDetails expects an array from this
+   * legacy service function, so preserve that
+   * existing contract.
+   */
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "prediction" in data &&
+    (data as { prediction?: unknown }).prediction
+  ) {
+    return [
+      {
+        ...((data as {
+          prediction: Prediction;
+        }).prediction),
+        projectId: cleanProjectId,
+      } as Prediction
+    ];
+  }
+
+  return [];
 };
-
 
 export const getLatestPrediction = async (
   projectId: string,
