@@ -269,12 +269,49 @@
 ========================================= */
 
 .projects-table {
-  width: 100%;
+  width: max-content;
 
-  min-width: 1100px;
+  min-width: 100%;
 
   border-collapse:
     collapse;
+
+  table-layout: fixed;
+}
+
+.projects-table th:nth-child(1),
+.projects-table td:nth-child(1) {
+  width: 260px;
+}
+
+.projects-table th:nth-child(2),
+.projects-table td:nth-child(2) {
+  width: 120px;
+}
+
+.projects-table th:nth-child(3),
+.projects-table td:nth-child(3) {
+  width: 170px;
+}
+
+.projects-table th:nth-child(4),
+.projects-table td:nth-child(4) {
+  width: 240px;
+}
+
+.projects-table th:nth-child(5),
+.projects-table td:nth-child(5) {
+  width: 120px;
+}
+
+.projects-table th:nth-child(6),
+.projects-table td:nth-child(6) {
+  width: 140px;
+}
+
+.projects-table th:nth-child(7),
+.projects-table td:nth-child(7) {
+  width: 180px;
 }
 
 
@@ -305,6 +342,18 @@
 
   white-space:
     nowrap;
+}
+
+
+.projects-table td:nth-child(2),
+.projects-table td:nth-child(3),
+.projects-table td:nth-child(4),
+.projects-table td:nth-child(6) {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
 }
 
 
@@ -349,6 +398,16 @@
 ========================================= */
 
 .project-name-button {
+  display: block;
+
+  max-width: 100%;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
   border: none;
 
   background:
@@ -516,14 +575,20 @@
   display: flex;
   align-items: center;
 
-  gap: 10px;
+  gap: 8px;
 
-  min-width: 140px;
+  min-width: 0;
+
+  max-width: 100%;
+
+  overflow: hidden;
 }
 
 
 .project-progress-bar {
-  flex: 1;
+  flex: 1 1 auto;
+
+  min-width: 48px;
 
   height: 7px;
 
@@ -552,10 +617,16 @@
 
 
 .project-progress span {
-  min-width: 38px;
+  flex: 0 0 44px;
+
+  min-width: 44px;
 
   font-size: 12px;
   font-weight: 600;
+
+  text-align: right;
+
+  font-variant-numeric: tabular-nums;
 
   color:
     var(--color-text-secondary);

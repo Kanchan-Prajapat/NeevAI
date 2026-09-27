@@ -516,19 +516,13 @@ cursor: pointer;
 
 
 .project-table {
-  width: 100%;
+  width: max-content;
 
-  min-width: 1150px;
+  min-width: 100%;
 
   border-collapse:
     collapse;
-}
 
-/* =========================================
-   PROJECT TABLE - COLUMN BALANCE
-========================================= */
-
-.project-table {
   table-layout: fixed;
 }
 
@@ -543,7 +537,7 @@ cursor: pointer;
 
 .project-table th:nth-child(1),
 .project-table td:nth-child(1) {
-  width: 22%;
+  width: 240px;
 }
 
 
@@ -551,7 +545,7 @@ cursor: pointer;
 
 .project-table th:nth-child(2),
 .project-table td:nth-child(2) {
-  width: 7%;
+  width: 110px;
 }
 
 
@@ -559,7 +553,7 @@ cursor: pointer;
 
 .project-table th:nth-child(3),
 .project-table td:nth-child(3) {
-  width: 12%;
+  width: 160px;
 }
 
 
@@ -567,7 +561,7 @@ cursor: pointer;
 
 .project-table th:nth-child(4),
 .project-table td:nth-child(4) {
-  width: 12%;
+  width: 240px;
 }
 
 
@@ -575,7 +569,9 @@ cursor: pointer;
 
 .project-table th:nth-child(5),
 .project-table td:nth-child(5) {
-  width: 9%;
+  width: 120px;
+
+  overflow: visible;
 }
 
 
@@ -583,7 +579,7 @@ cursor: pointer;
 
 .project-table th:nth-child(6),
 .project-table td:nth-child(6) {
-  width: 12%;
+  width: 180px;
 }
 
 
@@ -591,7 +587,7 @@ cursor: pointer;
 
 .project-table th:nth-child(7),
 .project-table td:nth-child(7) {
-  width: 10%;
+  width: 140px;
 }
 
 
@@ -599,7 +595,9 @@ cursor: pointer;
 
 .project-table th:nth-child(8),
 .project-table td:nth-child(8) {
-  width: 7%;
+  width: 100px;
+
+  overflow: visible;
 }
 
 
@@ -607,7 +605,7 @@ cursor: pointer;
 
 .project-table th:nth-child(9),
 .project-table td:nth-child(9) {
-  width: 5%;
+  width: 80px;
 }
 
 
@@ -615,7 +613,9 @@ cursor: pointer;
 
 .project-table th:nth-child(10),
 .project-table td:nth-child(10) {
-  width: 6%;
+  width: 140px;
+
+  overflow: visible;
 }
 
 
@@ -625,19 +625,8 @@ cursor: pointer;
 
 .project-name-cell {
   min-width: 0;
-}
-
-
-.project-name-cell strong {
-  display: block;
-
-  max-width: 235px;
 
   overflow: hidden;
-
-  text-overflow: ellipsis;
-
-  white-space: nowrap;
 }
 
 
@@ -645,20 +634,25 @@ cursor: pointer;
    COST
 ========================================= */
 
-.project-table td:nth-child(7) {
-  white-space: nowrap;
-}
-
-
-/* =========================================
-   DOMAIN / AGENCY
-========================================= */
-
+.project-table td:nth-child(2),
 .project-table td:nth-child(3),
-.project-table td:nth-child(4) {
+.project-table td:nth-child(4),
+.project-table td:nth-child(7) {
   overflow: hidden;
 
   text-overflow: ellipsis;
+}
+
+.cost-cell {
+  display: block;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  font-variant-numeric: tabular-nums;
 }
 
 /* =========================================
@@ -745,6 +739,16 @@ cursor: pointer;
 
 
 .project-name-cell strong {
+  display: block;
+
+  max-width: 100%;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
   color:
     var(--color-text-primary);
 
@@ -846,14 +850,20 @@ cursor: pointer;
 
   align-items: center;
 
-  gap: 10px;
+  gap: 8px;
 
-  min-width: 150px;
+  min-width: 0;
+
+  max-width: 100%;
+
+  overflow: hidden;
 }
 
 
 .progress-bar {
-  flex: 1;
+  flex: 1 1 auto;
+
+  min-width: 48px;
 
   height: 7px;
 
@@ -886,11 +896,17 @@ cursor: pointer;
 
 
 .progress-cell span {
-  min-width: 35px;
+  flex: 0 0 44px;
+
+  min-width: 44px;
 
   font-size: 12px;
 
   font-weight: 600;
+
+  text-align: right;
+
+  font-variant-numeric: tabular-nums;
 
   color:
     var(--color-text-primary);
