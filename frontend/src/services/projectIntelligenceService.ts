@@ -48,7 +48,9 @@ export const askProjectIntelligence = async (
   query: string
 ): Promise<ProjectIntelligenceResponse> => {
   const response = await fetch(
-    `${API_BASE_URL}/api/project-intelligence/${projectId}/ask`,
+   `${API_BASE_URL}/api/project-intelligence/${encodeURIComponent(
+  projectId.trim()
+)}/ask`,
     {
       method: "POST",
       headers: {

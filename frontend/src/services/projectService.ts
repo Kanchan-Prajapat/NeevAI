@@ -1,67 +1,54 @@
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  serverTimestamp,
-  updateDoc,
-} from "firebase/firestore";
+import type {
+  Project,
+} from "../../../shared/types";
 
-import { db } from "../firebase/firebase";
 
-import type { Project } from "../../../shared/types";
+// ==================================================
+// API BASE URL
+// ==================================================
 
-const PROJECTS_COLLECTION = "projects";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "http://127.0.0.1:8000";
 
-/**
- * Create a new project
- */
-export const createProject = async (
-  project: Omit<Project, "id" | "createdAt" | "updatedAt">
-): Promise<string> => {
-  const docRef = await addDoc(
-    collection(db, PROJECTS_COLLECTION),
-    {
-      ...project,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    }
-  );
 
-  return docRef.id;
-};
+// ==================================================
+// API RESPONSE HELPER
+// ==================================================
 
-/**
- * Get all projects
- */
-export const getProjects = async (): Promise<Project[]> => {
-  const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL ||
-    "http://127.0.0.1:8000";
-
-  const response = await fetch(
-    `${API_BASE_URL}/api/projects`
-  );
+const parseApiResponse = async (
+  response: Response,
+  operation: string
+): Promise<unknown> => {
 
   let data: unknown;
 
   try {
-    data = await response.json();
+    data =
+      await response.json();
   } catch {
     throw new Error(
-      `Projects API returned an invalid response (${response.status}).`
+      `${operation} returned an invalid response (${response.status}).`
     );
   }
 
   if (!response.ok) {
+
     const detail =
       typeof data === "object" &&
       data !== null &&
       "detail" in data &&
-      typeof (data as { detail?: unknown }).detail === "string"
-        ? (data as { detail: string }).detail
-        : `Projects API failed with status ${response.status}.`;
+      typeof (
+        data as {
+          detail?: unknown;
+        }
+      ).detail === "string"
+        ? (
+            data as {
+              detail: string;
+            }
+          ).detail
+        : `${operation} failed with status ${response.status}.`;
 
     throw new Error(detail);
   }
@@ -70,114 +57,209 @@ export const getProjects = async (): Promise<Project[]> => {
     typeof data !== "object" ||
     data === null ||
     !("success" in data) ||
-    (data as { success?: unknown }).success !== true
+    (
+      data as {
+        success?: unknown;
+      }
+    ).success !== true
   ) {
     throw new Error(
-      "Projects API returned an unsuccessful response."
+      `${operation} returned an unsuccessful response.`
     );
   }
 
-  const projects =
-    "projects" in data &&
-    Array.isArray(
-      (data as { projects?: unknown }).projects
-    )
-      ? ((data as {
-          projects: Project[];
-        }).projects ?? [])
-      : [];
-
-  return projects;
+  return data;
 };
-/**
- * Get project using Firestore document ID
- */
-export const getProjectById = async (
-  id: string
-): Promise<Project | null> => {
-  const documentRef = doc(
-    db,
-    PROJECTS_COLLECTION,
-    id
-  );
 
-  const snapshot = await getDoc(documentRef);
 
-  if (!snapshot.exists()) {
-    return null;
+// ==================================================
+// CREATE PROJECT
+// ==================================================
+
+export const createProject = async (
+  project: Omit<
+    Project,
+    "id" | "createdAt" | "updatedAt"
+  >
+): Promise<string> => {
+
+  const projectId =
+    project.projectId?.trim();
+
+  if (!projectId) {
+    throw new Error(
+      "Project ID is required."
+    );
   }
 
-  return {
-    id: snapshot.id,
-    ...snapshot.data(),
-  } as Project;
-};
+  const response =
+    await fetch(
+      `${API_BASE_URL}/api/projects`,
+      {
+        method: "POST",
 
-/**
- * Get project using official project ID
- */
-export const getProjectByProjectId = async (
-  projectId: string
-): Promise<Project | null> => {
-  const projects = await getProjects();
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body:
+          JSON.stringify({
+            ...project,
+            projectId,
+          }),
+      }
+    );
+
+  const data =
+    await parseApiResponse(
+      response,
+      "Create project API"
+    );
+
+  if (
+    typeof data !== "object" ||
+    data === null ||
+    !("documentId" in data) ||
+    typeof (
+      data as {
+        documentId?: unknown;
+      }
+    ).documentId !== "string"
+  ) {
+    throw new Error(
+      "Create project API did not return a document ID."
+    );
+  }
 
   return (
-    projects.find(
-      (project) => project.projectId === projectId
-    ) || null
-  );
+    data as {
+      documentId: string;
+    }
+  ).documentId;
 };
 
-/**
- * Update a project
- */
-export const updateProject = async (
-  id: string,
-  projectData: Partial<Project>
-): Promise<void> => {
-  try {
-    const projectRef = doc(
-      db,
-      PROJECTS_COLLECTION,
-      id
-    );
 
-    // Firestore does not accept undefined values.
-    const cleanedData = Object.fromEntries(
-      Object.entries(projectData).filter(
-        ([, value]) => value !== undefined
+// ==================================================
+// GET ALL PROJECTS
+// ==================================================
+
+export const getProjects =
+  async (): Promise<Project[]> => {
+
+    const response =
+      await fetch(
+        `${API_BASE_URL}/api/projects`
+      );
+
+    const data =
+      await parseApiResponse(
+        response,
+        "Projects API"
+      );
+
+    const projects =
+      typeof data === "object" &&
+      data !== null &&
+      "projects" in data &&
+      Array.isArray(
+        (
+          data as {
+            projects?: unknown;
+          }
+        ).projects
       )
+        ? (
+            data as {
+              projects: Project[];
+            }
+          ).projects
+        : [];
+
+    return projects;
+  };
+
+
+// ==================================================
+// GET PROJECT BY OFFICIAL PROJECT ID
+// ==================================================
+
+export const getProjectByProjectId =
+  async (
+    projectId: string
+  ): Promise<Project | null> => {
+
+    const cleanProjectId =
+      projectId.trim();
+
+    if (!cleanProjectId) {
+      throw new Error(
+        "Project ID is required."
+      );
+    }
+
+    const projects =
+      await getProjects();
+
+    return (
+      projects.find(
+        (project) =>
+          project.projectId ===
+          cleanProjectId
+      ) || null
     );
+  };
 
-    await updateDoc(projectRef, {
-      ...cleanedData,
-      updatedAt: serverTimestamp(),
-    });
 
-  } catch (error) {
-    console.error(
-      "Failed to update project:",
-      error
+// ==================================================
+// UPDATE PROJECT
+// ==================================================
+
+export const updateProject =
+  async (
+    id: string,
+    projectData: Partial<Project>
+  ): Promise<void> => {
+
+    const cleanDocumentId =
+      id.trim();
+
+    if (!cleanDocumentId) {
+      throw new Error(
+        "Project document ID is required."
+      );
+    }
+
+    const cleanedData =
+      Object.fromEntries(
+        Object.entries(
+          projectData
+        ).filter(
+          ([, value]) =>
+            value !== undefined
+        )
+      );
+
+    const response =
+      await fetch(
+        `${API_BASE_URL}/api/projects/${encodeURIComponent(
+          cleanDocumentId
+        )}`,
+        {
+          method: "PATCH",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body:
+            JSON.stringify(
+              cleanedData
+            ),
+        }
+      );
+
+    await parseApiResponse(
+      response,
+      "Update project API"
     );
-
-    throw error;
-  }
-};
-
-
-/**
- * Delete a project
- */
-export const deleteProject = async (
-  id: string
-): Promise<void> => {
-  const documentRef = doc(
-    db,
-    PROJECTS_COLLECTION,
-    id
-  );
-
-  await deleteDoc(documentRef);
-};
-
-
+  };

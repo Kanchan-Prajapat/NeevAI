@@ -1,30 +1,5 @@
 import type { DerivedMetric } from "../../../shared/types";
 
-import {
-  doc,
-  getDoc,
-} from "firebase/firestore";
-
-import { db } from "../firebase/firebase";
-
-const DERIVED_METRICS_COLLECTION =
-  "derivedMetrics";
-
-/*
- * Firestore document ID must not contain "/".
- */
-const createDerivedMetricId = (
-  projectId: string,
-  snapshotId: string
-): string => {
-  const safeProjectId =
-    encodeURIComponent(projectId);
-
-  const safeSnapshotId =
-    encodeURIComponent(snapshotId);
-
-  return `${safeProjectId}__${safeSnapshotId}`;
-};
 
 /*
  * Get derived metrics for a specific
@@ -34,27 +9,68 @@ export const getDerivedMetricBySnapshot = async (
   projectId: string,
   snapshotId: string
 ): Promise<DerivedMetric | null> => {
-  const derivedMetricId =
-    createDerivedMetricId(
-      projectId,
-      snapshotId
-    );
+  const cleanProjectId = projectId.trim();
+  const cleanSnapshotId = snapshotId.trim();
 
-  const metricRef = doc(
-    db,
-    DERIVED_METRICS_COLLECTION,
-    derivedMetricId
-  );
-
-  const metricSnapshot =
-    await getDoc(metricRef);
-
-  if (!metricSnapshot.exists()) {
-    return null;
+  if (!cleanProjectId) {
+    throw new Error("Project ID is required.");
   }
 
-  return {
-    id: metricSnapshot.id,
-    ...metricSnapshot.data(),
-  } as DerivedMetric;
+  if (!cleanSnapshotId) {
+    throw new Error("Snapshot ID is required.");
+  }
+
+  const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL ||
+    "http://127.0.0.1:8000";
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/projects/${encodeURIComponent(
+      cleanProjectId
+    )}/snapshots/${encodeURIComponent(
+      cleanSnapshotId
+    )}/derived-metric`
+  );
+
+  let data: unknown;
+
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+      `Derived metric API returned an invalid response (${response.status}).`
+    );
+  }
+
+  if (!response.ok) {
+    const detail =
+      typeof data === "object" &&
+      data !== null &&
+      "detail" in data &&
+      typeof (data as { detail?: unknown }).detail === "string"
+        ? (data as { detail: string }).detail
+        : `Derived metric API failed with status ${response.status}.`;
+
+    throw new Error(detail);
+  }
+
+  if (
+    typeof data !== "object" ||
+    data === null ||
+    !("success" in data) ||
+    (data as { success?: unknown }).success !== true
+  ) {
+    throw new Error(
+      "Derived metric API returned an unsuccessful response."
+    );
+  }
+
+  const derivedMetric =
+    "derivedMetric" in data
+      ? (data as {
+          derivedMetric?: DerivedMetric | null;
+        }).derivedMetric
+      : null;
+
+  return derivedMetric ?? null;
 };

@@ -2,420 +2,124 @@ import type {
   ProjectSnapshot,
 } from "../../../shared/types";
 
-import {
-  getProjectByProjectId,
-} from "./projectService";
-import { calculateProjectRisk } from "./riskService";
 
-import {
-  addDoc,
-  collection,
-  doc,
-  getDocs,
-  query,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
-  where,
-} from "firebase/firestore";
+// ==================================================
+// API BASE URL
+// ==================================================
 
-import { db } from "../firebase/firebase";
-
-const DERIVED_METRICS_COLLECTION =
-  "derivedMetrics";
-
-const RECALC_LOGS_COLLECTION =
-  "recalcLogs";
-
-const SNAPSHOTS_COLLECTION =
-  "projectSnapshots";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "http://127.0.0.1:8000";
 
 
-/* ==================================================
-   GET PROJECT SNAPSHOTS FOR RECALCULATION
-================================================== */
+// ==================================================
+// RECALCULATION RESPONSE
+// ==================================================
 
-const getProjectSnapshotsForRecalculation =
-  async (
-    projectId: string
-  ): Promise<ProjectSnapshot[]> => {
+export interface RecalculateProjectResponse {
+  success: boolean;
 
-    const snapshotsQuery = query(
-      collection(
-        db,
-        SNAPSHOTS_COLLECTION
-      ),
-      where(
-        "projectId",
-        "==",
-        projectId
-      )
-    );
+  projectId: string;
 
-    const snapshot =
-      await getDocs(
-        snapshotsQuery
-      );
+  snapshotId: string;
 
-    return snapshot.docs.map(
-      (document) =>
-        ({
-          id: document.id,
-          ...document.data(),
-        }) as ProjectSnapshot
-    );
+  derivedMetricId: string;
+
+  derivedMetric: {
+    financialProgress: number;
+    physicalProgress: number;
+    costVariance: number;
+    expectedVelocity: number;
+    actualVelocity: number;
+    scheduleVariance: number;
+
+    riskComponents: {
+      costRisk: number;
+      scheduleRisk: number;
+      velocityRisk: number;
+      efficiencyRisk: number;
+    };
+
+    overallRiskScore: number;
+    riskLevel: string;
   };
+}
 
 
-/* ==================================================
-   TIMESTAMP CONVERSION
-================================================== */
-const getTimestampMilliseconds = (
-  value: ProjectSnapshot["reportDate"]
-): number => {
-  if (!value) {
-    return 0;
-  }
-
-  if (value instanceof Date) {
-    return value.getTime();
-  }
-
-  if (typeof value === "string") {
-    const date = new Date(value);
-
-    return Number.isNaN(date.getTime())
-      ? 0
-      : date.getTime();
-  }
-
-  return 0;
-};
-
-/* ==================================================
-   SORT SNAPSHOTS
-================================================== */
-
-const sortSnapshotsByDate = (
-  snapshots: ProjectSnapshot[]
-): ProjectSnapshot[] => {
-
-  return [...snapshots].sort(
-    (a, b) =>
-      getTimestampMilliseconds(
-        a.reportDate
-      ) -
-      getTimestampMilliseconds(
-        b.reportDate
-      )
-  );
-};
-
-
-/* ==================================================
-   CREATE DERIVED METRIC ID
-================================================== */
-
-const createDerivedMetricId = (
-  projectId: string,
-  snapshotId: string
-): string => {
-
-  const safeProjectId =
-    encodeURIComponent(
-      projectId
-    );
-
-  const safeSnapshotId =
-    encodeURIComponent(
-      snapshotId
-    );
-
-  return `${safeProjectId}__${safeSnapshotId}`;
-};
-
-
-/* ==================================================
-   RECALCULATE PROJECT
-================================================== */
+// ==================================================
+// RECALCULATE PROJECT
+// ==================================================
 
 export const recalculateProject =
   async (
     projectId: string
-  ): Promise<void> => {
+  ): Promise<RecalculateProjectResponse> => {
 
-    /*
-     * ----------------------------------------------
-     * 1. CREATE RECALCULATION LOG
-     * ----------------------------------------------
-     */
+    const cleanProjectId =
+      projectId.trim();
 
-    const logRef =
-      await addDoc(
-        collection(
-          db,
-          RECALC_LOGS_COLLECTION
-        ),
+    if (!cleanProjectId) {
+      throw new Error(
+        "Project ID is required."
+      );
+    }
+
+    const response =
+      await fetch(
+        `${API_BASE_URL}/api/projects/${encodeURIComponent(
+          cleanProjectId
+        )}/recalculate`,
         {
-          projectId,
-
-          status: "started",
-
-          startedAt:
-            serverTimestamp(),
-
-          createdAt:
-            serverTimestamp(),
-
-          updatedAt:
-            serverTimestamp(),
+          method: "POST",
         }
       );
 
+    let data: unknown;
 
     try {
-
-      /*
-       * --------------------------------------------
-       * 2. GET PROJECT
-       * --------------------------------------------
-       */
-
-     const project =
-  await getProjectByProjectId(projectId);
-
-      if (!project) {
-        throw new Error(
-          `Project not found: ${projectId}`
-        );
-      }
-
-
-      /*
-       * --------------------------------------------
-       * 3. GET SNAPSHOTS
-       * --------------------------------------------
-       */
-
-      const snapshots =
-        await getProjectSnapshotsForRecalculation(
-          projectId
-        );
-
-      if (
-        snapshots.length === 0
-      ) {
-        throw new Error(
-          `No snapshots found for project: ${projectId}`
-        );
-      }
-
-
-      /*
-       * --------------------------------------------
-       * 4. SORT SNAPSHOTS
-       * --------------------------------------------
-       */
-
-      const sortedSnapshots =
-        sortSnapshotsByDate(
-          snapshots
-        );
-
-
-      /*
-       * --------------------------------------------
-       * 5. GET LATEST SNAPSHOT
-       * --------------------------------------------
-       */
-
-      const latestSnapshot =
-        sortedSnapshots[
-          sortedSnapshots.length - 1
-        ];
-
-      if (!latestSnapshot) {
-        throw new Error(
-          `Unable to determine latest snapshot for project: ${projectId}`
-        );
-      }
-
-
-      /*
-       * --------------------------------------------
-       * 6. GET PREVIOUS SNAPSHOT
-       * --------------------------------------------
-       */
-
-      const previousSnapshot =
-        sortedSnapshots.length > 1
-          ? sortedSnapshots[
-              sortedSnapshots.length - 2
-            ]
-          : undefined;
-
-
-      /*
-       * --------------------------------------------
-       * 7. CALCULATE RISK
-       * --------------------------------------------
-       */
-
-      const result =
-        calculateProjectRisk(
-          project,
-          latestSnapshot,
-          previousSnapshot
-        );
-
-
-      /*
-       * --------------------------------------------
-       * 8. VALIDATE SNAPSHOT ID
-       * --------------------------------------------
-       */
-
-      if (!latestSnapshot.id) {
-        throw new Error(
-          "Latest snapshot does not have an ID. Cannot save derived metric safely."
-        );
-      }
-
-
-      /*
-       * --------------------------------------------
-       * 9. CREATE DETERMINISTIC METRIC ID
-       * --------------------------------------------
-       */
-
-      const derivedMetricId =
-        createDerivedMetricId(
-          projectId,
-          latestSnapshot.id
-        );
-
-
-      /*
-       * --------------------------------------------
-       * 10. SAVE DERIVED METRIC
-       * --------------------------------------------
-       *
-       * setDoc() means recalculating the same
-       * project + snapshot updates the same
-       * Firestore document.
-       */
-
-      await setDoc(
-        doc(
-          db,
-          DERIVED_METRICS_COLLECTION,
-          derivedMetricId
-        ),
-        {
-          projectId,
-
-          snapshotId:
-            latestSnapshot.id,
-
-          financialProgress:
-            result.financialProgress,
-
-          physicalProgress:
-            result.physicalProgress,
-
-          costVariance:
-            result.costVariance,
-
-          expectedVelocity:
-            result.expectedVelocity,
-
-          actualVelocity:
-            result.actualVelocity,
-
-          scheduleVariance:
-            result.scheduleVariance,
-
-          riskComponents:
-            result.riskComponents,
-
-          overallRiskScore:
-            result.overallRiskScore,
-
-          riskLevel:
-            result.riskLevel,
-
-          computedAt:
-            serverTimestamp(),
-
-          createdAt:
-            serverTimestamp(),
-
-          updatedAt:
-            serverTimestamp(),
-        }
+      data =
+        await response.json();
+    } catch {
+      throw new Error(
+        `Recalculation API returned an invalid response (${response.status}).`
       );
-
-
-      /*
-       * --------------------------------------------
-       * 11. MARK RECALCULATION COMPLETED
-       * --------------------------------------------
-       */
-
-      await updateDoc(
-        doc(
-          db,
-          RECALC_LOGS_COLLECTION,
-          logRef.id
-        ),
-        {
-          status: "completed",
-
-          endedAt:
-            serverTimestamp(),
-
-          computedAt:
-            serverTimestamp(),
-
-          updatedAt:
-            serverTimestamp(),
-        }
-      );
-
-    } catch (error) {
-
-      /*
-       * --------------------------------------------
-       * 12. MARK RECALCULATION FAILED
-       * --------------------------------------------
-       */
-
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Unknown recalculation error";
-
-
-      await updateDoc(
-        doc(
-          db,
-          RECALC_LOGS_COLLECTION,
-          logRef.id
-        ),
-        {
-          status: "failed",
-
-          errorMessage,
-
-          endedAt:
-            serverTimestamp(),
-
-          updatedAt:
-            serverTimestamp(),
-        }
-      );
-
-
-      throw error;
     }
+
+    if (!response.ok) {
+
+      const detail =
+        typeof data === "object" &&
+        data !== null &&
+        "detail" in data &&
+        typeof (
+          data as {
+            detail?: unknown;
+          }
+        ).detail === "string"
+          ? (
+              data as {
+                detail: string;
+              }
+            ).detail
+          : `Recalculation failed with status ${response.status}.`;
+
+      throw new Error(detail);
+    }
+
+    if (
+      typeof data !== "object" ||
+      data === null ||
+      !("success" in data) ||
+      (
+        data as {
+          success?: unknown;
+        }
+      ).success !== true
+    ) {
+      throw new Error(
+        "Recalculation API returned an unsuccessful response."
+      );
+    }
+
+    return data as RecalculateProjectResponse;
   };

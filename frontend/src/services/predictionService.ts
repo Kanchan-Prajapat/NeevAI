@@ -1,194 +1,18 @@
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  serverTimestamp,
-  updateDoc,
-  where,
-} from "firebase/firestore";
-
-import { db } from "../firebase/firebase";
-
 import type { Prediction } from "../../../shared/types";
 
-import type {
-  PredictionType,
-} from "../../../shared/constants";
 
-const COLLECTION_NAME = "predictions";
+// =========================================================
+// API BASE URL
+// =========================================================
 
-
-export const createPrediction = async (
-  prediction: Omit<
-    Prediction,
-    "id" | "createdAt" | "updatedAt"
-  >
-): Promise<string> => {
-  const docRef = await addDoc(
-    collection(db, COLLECTION_NAME),
-    {
-      ...prediction,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    }
-  );
-
-  return docRef.id;
-};
+const ML_API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ??
+  "http://127.0.0.1:8000";
 
 
-export const getPredictionById = async (
-  id: string
-): Promise<Prediction | null> => {
-  const predictionRef = doc(
-    db,
-    COLLECTION_NAME,
-    id
-  );
-
-  const predictionDoc = await getDoc(predictionRef);
-
-  if (!predictionDoc.exists()) {
-    return null;
-  }
-
-  return {
-    id: predictionDoc.id,
-    ...predictionDoc.data(),
-  } as Prediction;
-};
-
-
-export const getPredictionsByProjectId = async (
-  projectId: string
-): Promise<Prediction[]> => {
-  const cleanProjectId = projectId.trim();
-
-  if (!cleanProjectId) {
-    throw new Error("Project ID is required.");
-  }
-
-  const response = await fetch(
-    `${ML_API_BASE_URL}/api/predictions/project/${encodeURIComponent(
-      cleanProjectId
-    )}`
-  );
-
-  let data: unknown;
-
-  try {
-    data = await response.json();
-  } catch {
-    throw new Error(
-      `Prediction API returned an invalid response (${response.status}).`
-    );
-  }
-
-  if (!response.ok) {
-    const detail =
-      typeof data === "object" &&
-      data !== null &&
-      "detail" in data &&
-      typeof (data as { detail?: unknown }).detail === "string"
-        ? (data as { detail: string }).detail
-        : `Prediction API failed with status ${response.status}.`;
-
-    throw new Error(detail);
-  }
-
-  /*
-   * The ML endpoint returns the current prediction
-   * inside the `prediction` property.
-   *
-   * ProjectDetails expects an array from this
-   * legacy service function, so preserve that
-   * existing contract.
-   */
-  if (
-    typeof data === "object" &&
-    data !== null &&
-    "prediction" in data &&
-    (data as { prediction?: unknown }).prediction
-  ) {
-    return [
-      {
-        ...((data as {
-          prediction: Prediction;
-        }).prediction),
-        projectId: cleanProjectId,
-      } as Prediction
-    ];
-  }
-
-  return [];
-};
-
-export const getLatestPrediction = async (
-  projectId: string,
-  predictionType: PredictionType
-): Promise<Prediction | null> => {
-  const predictionQuery = query(
-    collection(db, COLLECTION_NAME),
-    where("projectId", "==", projectId),
-    where("predictionType", "==", predictionType),
-    orderBy("createdAt", "desc"),
-    limit(1)
-  );
-
-  const querySnapshot = await getDocs(predictionQuery);
-
-  if (querySnapshot.empty) {
-    return null;
-  }
-
-  const predictionDoc = querySnapshot.docs[0];
-
-  return {
-    id: predictionDoc.id,
-    ...predictionDoc.data(),
-  } as Prediction;
-};
-
-
-export const updatePrediction = async (
-  id: string,
-  data: Partial<Prediction>
-): Promise<void> => {
-  const predictionRef = doc(
-    db,
-    COLLECTION_NAME,
-    id
-  );
-
-  await updateDoc(predictionRef, {
-    ...data,
-    updatedAt: serverTimestamp(),
-  });
-};
-
-
-export const deletePrediction = async (
-  id: string
-): Promise<void> => {
-  const predictionRef = doc(
-    db,
-    COLLECTION_NAME,
-    id
-  );
-
-  await deleteDoc(predictionRef);
-};
-
-
-// ---------------------------------------------------------
-// FastAPI ML Prediction
-// ---------------------------------------------------------
+// =========================================================
+// PROJECT PREDICTION
+// =========================================================
 
 export interface MLProjectPrediction {
   predicted_delay_months: number;
@@ -197,9 +21,9 @@ export interface MLProjectPrediction {
   predicted_risk_score: number;
   risk_category: string;
   model_version: string;
-
   feature_count: number;
 }
+
 
 export interface MLProjectPredictionResponse {
   success: boolean;
@@ -222,6 +46,167 @@ export interface MLProjectPredictionResponse {
 }
 
 
+// =========================================================
+// GET PREDICTIONS BY PROJECT ID
+// =========================================================
+
+export const getPredictionsByProjectId =
+  async (
+    projectId: string
+  ): Promise<Prediction[]> => {
+
+    const cleanProjectId =
+      projectId.trim();
+
+    if (!cleanProjectId) {
+      throw new Error(
+        "Project ID is required."
+      );
+    }
+
+    const response =
+      await fetch(
+        `${ML_API_BASE_URL}/api/predictions/project/${encodeURIComponent(
+          cleanProjectId
+        )}`
+      );
+
+    let data: unknown;
+
+    try {
+      data =
+        await response.json();
+    } catch {
+      throw new Error(
+        `Prediction API returned an invalid response (${response.status}).`
+      );
+    }
+
+    if (!response.ok) {
+
+      const detail =
+        typeof data === "object" &&
+        data !== null &&
+        "detail" in data &&
+        typeof (
+          data as {
+            detail?: unknown;
+          }
+        ).detail === "string"
+          ? (
+              data as {
+                detail: string;
+              }
+            ).detail
+          : `Prediction API failed with status ${response.status}.`;
+
+      throw new Error(detail);
+    }
+
+    /*
+     * The ML endpoint returns the current
+     * prediction inside the `prediction`
+     * property.
+     *
+     * ProjectDetails expects an array from
+     * this legacy service function, so
+     * preserve the existing contract.
+     */
+
+    if (
+      typeof data === "object" &&
+      data !== null &&
+      "prediction" in data &&
+      (
+        data as {
+          prediction?: unknown;
+        }
+      ).prediction
+    ) {
+
+      return [
+        {
+          ...(
+            data as {
+              prediction: Prediction;
+            }
+          ).prediction,
+
+          projectId:
+            cleanProjectId,
+        } as Prediction,
+      ];
+    }
+
+    return [];
+  };
+
+
+// =========================================================
+// FASTAPI ML PROJECT PREDICTION
+// =========================================================
+
+export const getMLProjectPrediction =
+  async (
+    projectId: string
+  ): Promise<MLProjectPredictionResponse> => {
+
+    const cleanProjectId =
+      projectId.trim();
+
+    if (!cleanProjectId) {
+      throw new Error(
+        "Project ID is required."
+      );
+    }
+
+    const response =
+      await fetch(
+        `${ML_API_BASE_URL}/api/predictions/project/${encodeURIComponent(
+          cleanProjectId
+        )}`
+      );
+
+    let data: unknown;
+
+    try {
+      data =
+        await response.json();
+    } catch {
+      throw new Error(
+        `Prediction API returned an invalid response (${response.status}).`
+      );
+    }
+
+    if (!response.ok) {
+
+      const detail =
+        typeof data === "object" &&
+        data !== null &&
+        "detail" in data &&
+        typeof (
+          data as {
+            detail?: unknown;
+          }
+        ).detail === "string"
+          ? (
+              data as {
+                detail: string;
+              }
+            ).detail
+          : `Prediction failed with status ${response.status}.`;
+
+      throw new Error(detail);
+    }
+
+    return data as MLProjectPredictionResponse;
+  };
+
+
+// =========================================================
+// TEMPORAL / NEXT-MONTH PROGRESS PREDICTION
+// =========================================================
+
 export interface TemporalProgressPrediction {
   predicted_next_month_physical_progress_pct: number;
   predicted_progress_change_pct: number;
@@ -230,6 +215,7 @@ export interface TemporalProgressPrediction {
   feature_count: number;
   feature_columns: string[];
 }
+
 
 export interface TemporalProgressPredictionResponse {
   success: boolean;
@@ -254,103 +240,66 @@ export interface TemporalProgressPredictionResponse {
 }
 
 
-const ML_API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ??
-  "http://127.0.0.1:8000";
+export const getNextMonthProgressPrediction =
+  async (
+    projectId: string
+  ): Promise<TemporalProgressPredictionResponse> => {
 
-export const getMLProjectPrediction = async (
-  projectId: string
-): Promise<MLProjectPredictionResponse> => {
-  const cleanProjectId = projectId.trim();
+    const cleanProjectId =
+      projectId.trim();
 
-  if (!cleanProjectId) {
-    throw new Error("Project ID is required.");
-  }
+    if (!cleanProjectId) {
+      throw new Error(
+        "Project ID is required."
+      );
+    }
 
-  const response = await fetch(
-    `${ML_API_BASE_URL}/api/predictions/project/${encodeURIComponent(
-      cleanProjectId
-    )}`
-  );
+    const response =
+      await fetch(
+        `${ML_API_BASE_URL}/api/predictions/project/${encodeURIComponent(
+          cleanProjectId
+        )}/next-month-progress`
+      );
 
-  let data: unknown;
+    let data: unknown;
 
-  try {
-    data = await response.json();
-  } catch {
-    throw new Error(
-      `Prediction API returned an invalid response (${response.status}).`
-    );
-  }
+    try {
+      data =
+        await response.json();
+    } catch {
+      throw new Error(
+        `Temporal prediction API returned an invalid response (${response.status}).`
+      );
+    }
 
-  if (!response.ok) {
-    const detail =
-      typeof data === "object" &&
-      data !== null &&
-      "detail" in data &&
-      typeof (data as { detail?: unknown }).detail === "string"
-        ? (data as { detail: string }).detail
-        : `Prediction failed with status ${response.status}.`;
+    if (!response.ok) {
 
-    throw new Error(detail);
-  }
+      const detail =
+        typeof data === "object" &&
+        data !== null &&
+        "detail" in data &&
+        typeof (
+          data as {
+            detail?: unknown;
+          }
+        ).detail === "string"
+          ? (
+              data as {
+                detail: string;
+              }
+            ).detail
+          : `Temporal prediction failed with status ${response.status}.`;
 
-console.log("ML API RESPONSE:", data);
-  return data as MLProjectPredictionResponse;
-};
+      throw new Error(detail);
+    }
 
-
-
-export const getNextMonthProgressPrediction = async (
-  projectId: string
-): Promise<TemporalProgressPredictionResponse> => {
-  const cleanProjectId = projectId.trim();
-
-  if (!cleanProjectId) {
-    throw new Error("Project ID is required.");
-  }
-
-  const response = await fetch(
-    `${ML_API_BASE_URL}/api/predictions/project/${encodeURIComponent(
-      cleanProjectId
-    )}/next-month-progress`
-  );
-
-  let data: unknown;
-
-  try {
-    data = await response.json();
-  } catch {
-    throw new Error(
-      `Temporal prediction API returned an invalid response (${response.status}).`
-    );
-  }
-
-  if (!response.ok) {
-    const detail =
-      typeof data === "object" &&
-      data !== null &&
-      "detail" in data &&
-      typeof (data as { detail?: unknown }).detail === "string"
-        ? (data as { detail: string }).detail
-        : `Temporal prediction failed with status ${response.status}.`;
-
-    throw new Error(detail);
-  }
-
-  console.log(
-    "TEMPORAL PROGRESS API RESPONSE:",
-    data
-  );
-
-  return data as TemporalProgressPredictionResponse;
-};
+    return data as TemporalProgressPredictionResponse;
+  };
 
 
-
-// ---------------------------------------------------------
-// FastAPI What-If Scenario Prediction
-// ---------------------------------------------------------
+// =========================================================
+// WHAT-IF SCENARIO PREDICTION
+// =========================================================
 
 export interface WhatIfScenario {
   originalCostCr?: number;
@@ -367,6 +316,7 @@ export interface WhatIfScenario {
   contractorDelayScore?: number;
   geologicalDelayScore?: number;
 }
+
 
 export interface MLScenarioPredictionResponse {
   success: boolean;
@@ -391,59 +341,72 @@ export interface MLScenarioPredictionResponse {
   overrides: WhatIfScenario;
 }
 
-export const runWhatIfPrediction = async (
-  projectId: string,
-  scenario: WhatIfScenario
-): Promise<MLScenarioPredictionResponse> => {
 
-  const cleanProjectId = projectId.trim();
+export const runWhatIfPrediction =
+  async (
+    projectId: string,
+    scenario: WhatIfScenario
+  ): Promise<MLScenarioPredictionResponse> => {
 
-  if (!cleanProjectId) {
-    throw new Error("Project ID is required.");
-  }
+    const cleanProjectId =
+      projectId.trim();
 
-  const response = await fetch(
-    `${ML_API_BASE_URL}/api/predictions/simulate?project_id=${encodeURIComponent(
-      cleanProjectId
-    )}`,
-    {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-
-      body: JSON.stringify(scenario),
+    if (!cleanProjectId) {
+      throw new Error(
+        "Project ID is required."
+      );
     }
-  );
 
-  let data: unknown;
+    const response =
+      await fetch(
+        `${ML_API_BASE_URL}/api/predictions/simulate?project_id=${encodeURIComponent(
+          cleanProjectId
+        )}`,
+        {
+          method: "POST",
 
-  try {
-    data = await response.json();
-  } catch {
-    throw new Error(
-      `What-if API returned an invalid response (${response.status}).`
-    );
-  }
+          headers: {
+            "Content-Type": "application/json",
+          },
 
-  if (!response.ok) {
+          body:
+            JSON.stringify(
+              scenario
+            ),
+        }
+      );
 
-    const detail =
-      typeof data === "object" &&
-      data !== null &&
-      "detail" in data &&
-      typeof (data as { detail?: unknown }).detail === "string"
-        ? (data as { detail: string }).detail
-        : `What-if prediction failed with status ${response.status}.`;
+    let data: unknown;
 
-    throw new Error(detail);
-  }
+    try {
+      data =
+        await response.json();
+    } catch {
+      throw new Error(
+        `What-if API returned an invalid response (${response.status}).`
+      );
+    }
 
-  console.log(
-    "WHAT-IF ML API RESPONSE:",
-    data
-  );
+    if (!response.ok) {
 
-  return data as MLScenarioPredictionResponse;
-};
+      const detail =
+        typeof data === "object" &&
+        data !== null &&
+        "detail" in data &&
+        typeof (
+          data as {
+            detail?: unknown;
+          }
+        ).detail === "string"
+          ? (
+              data as {
+                detail: string;
+              }
+            ).detail
+          : `What-if prediction failed with status ${response.status}.`;
+
+      throw new Error(detail);
+    }
+
+    return data as MLScenarioPredictionResponse;
+  };

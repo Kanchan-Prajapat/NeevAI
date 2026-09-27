@@ -1,92 +1,54 @@
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  serverTimestamp,
-  updateDoc,
-  where,
-} from "firebase/firestore";
-
-import { recalculateProject } from "./recalcService";
-
-import { db } from "../firebase/firebase";
-
 import type {
   ProjectSnapshot,
 } from "../../../shared/types";
 
-const SNAPSHOTS_COLLECTION = "projectSnapshots";
 
-/**
- * Create a new project snapshot
- */
-export const createProjectSnapshot = async (
-  snapshot: Omit<
-    ProjectSnapshot,
-    "id" | "createdAt" | "updatedAt"
-  >
-): Promise<string> => {
-  const docRef = await addDoc(
-    collection(db, SNAPSHOTS_COLLECTION),
-    {
-      ...snapshot,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    }
-  );
+// ==================================================
+// API BASE URL
+// ==================================================
 
-  await recalculateProject(
-    snapshot.projectId
-  );
-
-  return docRef.id;
-};
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "http://127.0.0.1:8000";
 
 
-/**
- * Get all snapshots for a project
- */
-export const getProjectSnapshots = async (
-  projectId: string
-): Promise<ProjectSnapshot[]> => {
-  const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL ||
-    "http://127.0.0.1:8000";
+// ==================================================
+// API RESPONSE HELPER
+// ==================================================
 
-  const cleanProjectId = projectId.trim();
-
-  if (!cleanProjectId) {
-    throw new Error("Project ID is required.");
-  }
-
-  const response = await fetch(
-    `${API_BASE_URL}/api/projects/${encodeURIComponent(
-      cleanProjectId
-    )}/snapshots`
-  );
+const parseApiResponse = async (
+  response: Response,
+  operation: string
+): Promise<unknown> => {
 
   let data: unknown;
 
   try {
-    data = await response.json();
+    data =
+      await response.json();
   } catch {
     throw new Error(
-      `Snapshot API returned an invalid response (${response.status}).`
+      `${operation} returned an invalid response (${response.status}).`
     );
   }
 
   if (!response.ok) {
+
     const detail =
       typeof data === "object" &&
       data !== null &&
       "detail" in data &&
-      typeof (data as { detail?: unknown }).detail === "string"
-        ? (data as { detail: string }).detail
-        : `Snapshot API failed with status ${response.status}.`;
+      typeof (
+        data as {
+          detail?: unknown;
+        }
+      ).detail === "string"
+        ? (
+            data as {
+              detail: string;
+            }
+          ).detail
+        : `${operation} failed with status ${response.status}.`;
 
     throw new Error(detail);
   }
@@ -95,145 +57,307 @@ export const getProjectSnapshots = async (
     typeof data !== "object" ||
     data === null ||
     !("success" in data) ||
-    (data as { success?: unknown }).success !== true
+    (
+      data as {
+        success?: unknown;
+      }
+    ).success !== true
   ) {
     throw new Error(
-      "Snapshot API returned an unsuccessful response."
+      `${operation} returned an unsuccessful response.`
     );
   }
 
-  const snapshots =
-    "snapshots" in data &&
-    Array.isArray(
-      (data as { snapshots?: unknown }).snapshots
-    )
-      ? ((data as {
-          snapshots: ProjectSnapshot[];
-        }).snapshots ?? [])
-      : [];
-
-  return snapshots.sort((a, b) => {
-    const dateA = new Date(
-      a.reportDate as string
-    ).getTime();
-
-    const dateB = new Date(
-      b.reportDate as string
-    ).getTime();
-
-    return dateB - dateA;
-  });
+  return data;
 };
 
-/**
- * Get latest snapshot of a project
- */
-export const getLatestProjectSnapshot = async (
-  projectId: string
-): Promise<ProjectSnapshot | null> => {
-  const snapshots =
-    await getProjectSnapshots(projectId);
 
-  if (snapshots.length === 0) {
-    return null;
-  }
+// ==================================================
+// CREATE PROJECT SNAPSHOT
+// ==================================================
 
-  return snapshots[0];
-};
+export const createProjectSnapshot =
+  async (
+    snapshot: Omit<
+      ProjectSnapshot,
+      "id" | "createdAt" | "updatedAt"
+    >
+  ): Promise<string> => {
 
-/**
- * Update a snapshot
- */
-export const updateProjectSnapshot = async (
-  id: string,
-  updates: Partial<ProjectSnapshot>
-): Promise<void> => {
-  const documentRef = doc(
-    db,
-    SNAPSHOTS_COLLECTION,
-    id
-  );
+    const projectId =
+      snapshot.projectId?.trim();
 
-  const existingSnapshot =
-    await getDoc(documentRef);
+    if (!projectId) {
+      throw new Error(
+        "Project ID is required."
+      );
+    }
 
-  if (!existingSnapshot.exists()) {
-    throw new Error(
-      `Snapshot not found: ${id}`
+    const response =
+      await fetch(
+        `${API_BASE_URL}/api/projects/${encodeURIComponent(
+          projectId
+        )}/snapshots`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body:
+            JSON.stringify(
+              snapshot
+            ),
+        }
+      );
+
+    const data =
+      await parseApiResponse(
+        response,
+        "Create snapshot API"
+      );
+
+    if (
+      typeof data !== "object" ||
+      data === null ||
+      !("snapshotId" in data) ||
+      typeof (
+        data as {
+          snapshotId?: unknown;
+        }
+      ).snapshotId !== "string"
+    ) {
+      throw new Error(
+        "Create snapshot API did not return a snapshot ID."
+      );
+    }
+
+    return (
+      data as {
+        snapshotId: string;
+      }
+    ).snapshotId;
+  };
+
+
+// ==================================================
+// GET PROJECT SNAPSHOTS
+// ==================================================
+
+export const getProjectSnapshots =
+  async (
+    projectId: string
+  ): Promise<ProjectSnapshot[]> => {
+
+    const cleanProjectId =
+      projectId.trim();
+
+    if (!cleanProjectId) {
+      throw new Error(
+        "Project ID is required."
+      );
+    }
+
+    const response =
+      await fetch(
+        `${API_BASE_URL}/api/projects/${encodeURIComponent(
+          cleanProjectId
+        )}/snapshots`
+      );
+
+    const data =
+      await parseApiResponse(
+        response,
+        "Snapshot API"
+      );
+
+    const snapshots =
+      typeof data === "object" &&
+      data !== null &&
+      "snapshots" in data &&
+      Array.isArray(
+        (
+          data as {
+            snapshots?: unknown;
+          }
+        ).snapshots
+      )
+        ? (
+            data as {
+              snapshots: ProjectSnapshot[];
+            }
+          ).snapshots
+        : [];
+
+    return snapshots.sort(
+      (a, b) => {
+
+        const dateA =
+          new Date(
+            a.reportDate as string
+          ).getTime();
+
+        const dateB =
+          new Date(
+            b.reportDate as string
+          ).getTime();
+
+        return dateB - dateA;
+      }
     );
-  }
-
-  const existingData =
-    existingSnapshot.data() as ProjectSnapshot;
-
-  await updateDoc(documentRef, {
-    ...updates,
-    updatedAt: serverTimestamp(),
-  });
-
-  const projectId =
-    updates.projectId ??
-    existingData.projectId;
-
-  await recalculateProject(
-    projectId
-  );
-};
+  };
 
 
-/**
- * Delete a snapshot
- */
-export const deleteProjectSnapshot = async (
-  id: string
-): Promise<void> => {
-  const documentRef = doc(
-    db,
-    SNAPSHOTS_COLLECTION,
-    id
-  );
+// ==================================================
+// GET LATEST SNAPSHOT
+// ==================================================
 
-  const existingSnapshot =
-    await getDoc(documentRef);
+export const getLatestProjectSnapshot =
+  async (
+    projectId: string
+  ): Promise<ProjectSnapshot | null> => {
 
-  if (!existingSnapshot.exists()) {
-    throw new Error(
-      `Snapshot not found: ${id}`
+    const snapshots =
+      await getProjectSnapshots(
+        projectId
+      );
+
+    if (
+      snapshots.length === 0
+    ) {
+      return null;
+    }
+
+    return snapshots[0];
+  };
+
+
+// ==================================================
+// UPDATE PROJECT SNAPSHOT
+// ==================================================
+
+export const updateProjectSnapshot =
+  async (
+    id: string,
+    updates: Partial<ProjectSnapshot>
+  ): Promise<void> => {
+
+    const cleanSnapshotId =
+      id.trim();
+
+    if (!cleanSnapshotId) {
+      throw new Error(
+        "Snapshot ID is required."
+      );
+    }
+
+    const cleanedData =
+      Object.fromEntries(
+        Object.entries(
+          updates
+        ).filter(
+          ([, value]) =>
+            value !== undefined
+        )
+      );
+
+    const response =
+      await fetch(
+        `${API_BASE_URL}/api/snapshots/${encodeURIComponent(
+          cleanSnapshotId
+        )}`,
+        {
+          method: "PATCH",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body:
+            JSON.stringify(
+              cleanedData
+            ),
+        }
+      );
+
+    await parseApiResponse(
+      response,
+      "Update snapshot API"
     );
-  }
-
-  const snapshot =
-    existingSnapshot.data() as ProjectSnapshot;
-
-  await deleteDoc(documentRef);
-
-  await recalculateProject(
-    snapshot.projectId
-  );
-};
+  };
 
 
+// ==================================================
+// DELETE PROJECT SNAPSHOT
+// ==================================================
 
-/**
- * Get all project snapshots
- */
-export const getAllProjectSnapshots = async (): Promise<
-  ProjectSnapshot[]
-> => {
-  const snapshotCollection = collection(
-    db,
-    SNAPSHOTS_COLLECTION
-  );
+export const deleteProjectSnapshot =
+  async (
+    id: string
+  ): Promise<void> => {
 
-  const snapshot = await getDocs(
-    snapshotCollection
-  );
+    const cleanSnapshotId =
+      id.trim();
 
-  return snapshot.docs.map(
-    (document) =>
-      ({
-        id: document.id,
-        ...document.data(),
-      }) as ProjectSnapshot
-  );
-};
+    if (!cleanSnapshotId) {
+      throw new Error(
+        "Snapshot ID is required."
+      );
+    }
+
+    const response =
+      await fetch(
+        `${API_BASE_URL}/api/snapshots/${encodeURIComponent(
+          cleanSnapshotId
+        )}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+    await parseApiResponse(
+      response,
+      "Delete snapshot API"
+    );
+  };
+
+
+// ==================================================
+// GET ALL PROJECT SNAPSHOTS
+// ==================================================
+
+export const getAllProjectSnapshots =
+  async (): Promise<ProjectSnapshot[]> => {
+
+    const response =
+      await fetch(
+        `${API_BASE_URL}/api/snapshots`
+      );
+
+    const data =
+      await parseApiResponse(
+        response,
+        "Snapshots API"
+      );
+
+    const snapshots =
+      typeof data === "object" &&
+      data !== null &&
+      "snapshots" in data &&
+      Array.isArray(
+        (
+          data as {
+            snapshots?: unknown;
+          }
+        ).snapshots
+      )
+        ? (
+            data as {
+              snapshots: ProjectSnapshot[];
+            }
+          ).snapshots
+        : [];
+
+    return snapshots;
+  };

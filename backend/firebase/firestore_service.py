@@ -281,3 +281,325 @@ def get_latest_project_snapshot(
     )
 
     return snapshots[0]
+
+
+
+def get_derived_metric_by_snapshot(
+    project_id: str,
+    snapshot_id: str,
+) -> Optional[Dict[str, Any]]:
+    """
+    Get derived metric for a specific
+    project + snapshot.
+    """
+
+    derived_metric_id = (
+        f"{project_id}__{snapshot_id}"
+    )
+
+    metric_ref = db.collection(
+        "derivedMetrics"
+    ).document(
+        derived_metric_id
+    )
+
+    metric_snapshot = metric_ref.get()
+
+    if not metric_snapshot.exists:
+        return None
+
+    return {
+        "id": metric_snapshot.id,
+        **metric_snapshot.to_dict(),
+    }
+
+
+def get_all_project_snapshots() -> list[Dict[str, Any]]:
+    """
+    Get all project snapshots from Firestore.
+    """
+
+    snapshot_collection = db.collection(
+        "projectSnapshots"
+    )
+
+    snapshot_docs = snapshot_collection.stream()
+
+    snapshots = []
+
+    for document in snapshot_docs:
+        snapshots.append(
+            {
+                "id": document.id,
+                **document.to_dict(),
+            }
+        )
+
+    return snapshots
+
+
+
+# ---------------------------------------------------------------------------
+# Derived metrics
+# ---------------------------------------------------------------------------
+
+def save_derived_metric(
+    project_id: str,
+    snapshot_id: str,
+    metric: Dict[str, Any],
+) -> str:
+    """
+    Save or update the derived metric for a
+    project + snapshot.
+
+    The deterministic document ID ensures that
+    recalculating the same snapshot updates the
+    existing metric instead of creating duplicates.
+    """
+
+    derived_metric_id = (
+        f"{project_id}__{snapshot_id}"
+    )
+
+    metric_ref = (
+        db.collection("derivedMetrics")
+        .document(derived_metric_id)
+    )
+
+    metric_ref.set(
+        {
+            "projectId": project_id,
+            "snapshotId": snapshot_id,
+            **metric,
+        }
+    )
+
+    return derived_metric_id
+
+
+# ---------------------------------------------------------------------------
+# Recalculation logs
+# ---------------------------------------------------------------------------
+
+def create_recalc_log(
+    project_id: str,
+) -> str:
+    """
+    Create a recalculation log with started status.
+    """
+
+    log_ref = db.collection(
+        "recalcLogs"
+    ).document()
+
+    log_ref.set(
+        {
+            "projectId": project_id,
+            "status": "started",
+            "startedAt": firestore.SERVER_TIMESTAMP,
+            "createdAt": firestore.SERVER_TIMESTAMP,
+            "updatedAt": firestore.SERVER_TIMESTAMP,
+        }
+    )
+
+    return log_ref.id
+
+
+def update_recalc_log(
+    log_id: str,
+    updates: Dict[str, Any],
+) -> None:
+    """
+    Update an existing recalculation log.
+    """
+
+    log_ref = (
+        db.collection("recalcLogs")
+        .document(log_id)
+    )
+
+    log_ref.update(
+        {
+            **updates,
+            "updatedAt": firestore.SERVER_TIMESTAMP,
+        }
+    )
+
+
+
+# ============================================================
+# Project Snapshot CRUD
+# ============================================================
+
+def create_project_snapshot(
+    snapshot: Dict[str, Any],
+) -> str:
+    snapshot_ref = (
+        db.collection("projectSnapshots")
+        .document()
+    )
+
+    snapshot_ref.set(
+        {
+            **snapshot,
+            "createdAt": firestore.SERVER_TIMESTAMP,
+            "updatedAt": firestore.SERVER_TIMESTAMP,
+        }
+    )
+
+    return snapshot_ref.id
+
+
+def get_project_snapshot_by_id(
+    snapshot_id: str,
+) -> Optional[Dict[str, Any]]:
+    snapshot_ref = (
+        db.collection("projectSnapshots")
+        .document(snapshot_id)
+    )
+
+    snapshot_doc = snapshot_ref.get()
+
+    if not snapshot_doc.exists:
+        return None
+
+    return {
+        "id": snapshot_doc.id,
+        **snapshot_doc.to_dict(),
+    }
+
+
+def update_project_snapshot(
+    snapshot_id: str,
+    updates: Dict[str, Any],
+) -> bool:
+    snapshot_ref = (
+        db.collection("projectSnapshots")
+        .document(snapshot_id)
+    )
+
+    snapshot_doc = snapshot_ref.get()
+
+    if not snapshot_doc.exists:
+        return False
+
+    snapshot_ref.update(
+        {
+            **updates,
+            "updatedAt": firestore.SERVER_TIMESTAMP,
+        }
+    )
+
+    return True
+
+
+def delete_project_snapshot(
+    snapshot_id: str,
+) -> Optional[Dict[str, Any]]:
+    snapshot_ref = (
+        db.collection("projectSnapshots")
+        .document(snapshot_id)
+    )
+
+    snapshot_doc = snapshot_ref.get()
+
+    if not snapshot_doc.exists:
+        return None
+
+    snapshot_data = {
+        "id": snapshot_doc.id,
+        **snapshot_doc.to_dict(),
+    }
+
+    snapshot_ref.delete()
+
+    return snapshot_data
+
+
+# ============================================================
+# Project CRUD
+# ============================================================
+
+def create_project(
+    project: Dict[str, Any],
+) -> str:
+    project_ref = (
+        db.collection("projects")
+        .document()
+    )
+
+    project_ref.set(
+        {
+            **project,
+            "createdAt": firestore.SERVER_TIMESTAMP,
+            "updatedAt": firestore.SERVER_TIMESTAMP,
+        }
+    )
+
+    return project_ref.id
+
+
+def get_project_by_document_id(
+    project_id: str,
+) -> Optional[Dict[str, Any]]:
+    project_ref = (
+        db.collection("projects")
+        .document(project_id)
+    )
+
+    project_doc = project_ref.get()
+
+    if not project_doc.exists:
+        return None
+
+    return {
+        "id": project_doc.id,
+        **project_doc.to_dict(),
+    }
+
+
+def update_project(
+    project_id: str,
+    updates: Dict[str, Any],
+) -> bool:
+    project_ref = (
+        db.collection("projects")
+        .document(project_id)
+    )
+
+    project_doc = project_ref.get()
+
+    if not project_doc.exists:
+        return False
+
+    project_ref.update(
+        {
+            **updates,
+            "updatedAt": firestore.SERVER_TIMESTAMP,
+        }
+    )
+
+    return True
+
+
+def delete_project(
+    project_id: str,
+) -> Optional[Dict[str, Any]]:
+    project_ref = (
+        db.collection("projects")
+        .document(project_id)
+    )
+
+    project_doc = project_ref.get()
+
+    if not project_doc.exists:
+        return None
+
+    project_data = {
+        "id": project_doc.id,
+        **project_doc.to_dict(),
+    }
+
+    project_ref.delete()
+
+    return project_data
