@@ -118,7 +118,29 @@ const [riskFilter, setRiskFilter] =
   }
 
 
-const filteredProjects = analytics.projects.filter(
+const formatStatusLabel = (
+  status?: string
+): string => {
+  if (!status?.trim()) {
+    return "No Data";
+  }
+
+  return status
+    .trim()
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+const uniqueProjects = Array.from(
+  new Map(
+    analytics.projects.map((project) => [
+      project.projectId,
+      project,
+    ])
+  ).values()
+);
+
+const filteredProjects = uniqueProjects.filter(
   (project) => {
     const search = searchTerm
       .trim()
@@ -640,11 +662,11 @@ const filteredProjects = analytics.projects.filter(
 
         <div className="project-name-cell">
 
-          <strong>
+          <strong title={project.projectName}>
             {project.projectName}
           </strong>
 
-          <span>
+          <span title={project.projectId}>
             {project.projectId}
           </span>
 
@@ -655,21 +677,21 @@ const filteredProjects = analytics.projects.filter(
 
       {/* TYPE */}
 
-      <td>
+      <td title={project.projectType}>
         {project.projectType}
       </td>
 
 
       {/* DOMAIN */}
 
-      <td>
+      <td title={project.domain}>
         {project.domain}
       </td>
 
 
       {/* IMPLEMENTING AGENCY */}
 
-      <td>
+      <td title={project.implementingAgency}>
         {project.implementingAgency}
       </td>
 
@@ -682,11 +704,10 @@ const filteredProjects = analytics.projects.filter(
           className={`status-badge status-${(
             project.status ??
             "unknown"
-          ).toLowerCase()}`}
+          ).trim().toLowerCase()}`}
         >
 
-          {project.status ??
-            "No Data"}
+          {formatStatusLabel(project.status)}
 
         </span>
 
@@ -730,7 +751,12 @@ const filteredProjects = analytics.projects.filter(
       {/* COST */}
 
 <td>
-  ₹ {(project.budget / 10000000).toFixed(2)} Cr
+  <span
+    className="cost-cell"
+    title={`₹ ${(project.budget / 10000000).toFixed(2)} Cr`}
+  >
+    ₹ {(project.budget / 10000000).toFixed(2)} Cr
+  </span>
 </td>
 
 

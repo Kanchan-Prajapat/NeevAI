@@ -232,8 +232,30 @@ const [
      SEARCH FILTER
   ============================== */
 
+  const formatStatusLabel = (
+    status?: string
+  ): string => {
+    if (!status?.trim()) {
+      return "No Data";
+    }
+
+    return status
+      .trim()
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
+  const uniqueProjects = Array.from(
+    new Map(
+      projects.map((project) => [
+        project.projectId,
+        project,
+      ])
+    ).values()
+  );
+
   const filteredProjects =
-    projects.filter(
+    uniqueProjects.filter(
       (project) => {
 
         const query =
@@ -638,6 +660,10 @@ if (
                             <button
                               type="button"
                               className="project-name-button"
+                              title={
+                                project.projectName ||
+                                "Unnamed Project"
+                              }
                               onClick={(event) => {
 
                                 event.stopPropagation();
@@ -657,7 +683,10 @@ if (
                             </button>
 
 
-                            <span className="project-id">
+                            <span
+                              className="project-id"
+                              title={project.projectId}
+                            >
 
                               {project.projectId}
 
@@ -670,7 +699,12 @@ if (
 
                         {/* TYPE */}
 
-                        <td>
+                        <td
+                          title={
+                            project.projectType ??
+                            "No Data"
+                          }
+                        >
 
                           {project.projectType ??
                             "No Data"
@@ -681,7 +715,12 @@ if (
 
                         {/* SECTOR */}
 
-                        <td>
+                        <td
+                          title={
+                            project.domain ??
+                            "No Data"
+                          }
+                        >
 
                           {project.domain ??
                             "No Data"
@@ -692,7 +731,12 @@ if (
 
                         {/* IMPLEMENTING AGENCY */}
 
-                        <td>
+                        <td
+                          title={
+                            project.implementingAgency ??
+                            "No Data"
+                          }
+                        >
 
                           {project.implementingAgency ??
                             "No Data"
@@ -711,13 +755,11 @@ if (
                               status-${(
                                 project.status ??
                                 "unknown"
-                              ).toLowerCase()}
+                              ).trim().toLowerCase()}
                             `}
                           >
 
-                            {project.status ??
-                              "No Data"
-                            }
+                            {formatStatusLabel(project.status)}
 
                           </span>
 

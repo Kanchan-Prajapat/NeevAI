@@ -558,6 +558,15 @@ export const getDashboardAnalytics =
           )
         );
 
+      const uniqueProjectItems = Array.from(
+        new Map(
+          projectItems.map((project) => [
+            project.projectId,
+            project,
+          ])
+        ).values()
+      );
+
 
       /*
        * =====================================
@@ -566,11 +575,11 @@ export const getDashboardAnalytics =
        */
 
       const totalProjects =
-        projectItems.length;
+        uniqueProjectItems.length;
 
 
       const plannedProjects =
-        projectItems.filter(
+        uniqueProjectItems.filter(
           (project) =>
             project.status
               ?.trim()
@@ -580,7 +589,7 @@ export const getDashboardAnalytics =
 
 
       const ongoingProjects =
-        projectItems.filter(
+        uniqueProjectItems.filter(
           (project) =>
             project.status
               ?.trim()
@@ -590,7 +599,7 @@ export const getDashboardAnalytics =
 
 
       const delayedProjects =
-        projectItems.filter(
+        uniqueProjectItems.filter(
           (project) =>
             project.status
               ?.trim()
@@ -600,7 +609,7 @@ export const getDashboardAnalytics =
 
 
       const completedProjects =
-        projectItems.filter(
+        uniqueProjectItems.filter(
           (project) =>
             project.status
               ?.trim()
@@ -610,7 +619,7 @@ export const getDashboardAnalytics =
 
 
       const stalledProjects =
-        projectItems.filter(
+        uniqueProjectItems.filter(
           (project) =>
             project.status
               ?.trim()
@@ -626,7 +635,7 @@ export const getDashboardAnalytics =
        */
 
       const totalBudget =
-        projectItems.reduce(
+        uniqueProjectItems.reduce(
           (
             total,
             project
@@ -640,7 +649,7 @@ export const getDashboardAnalytics =
 
 
       const totalExpenditure =
-        projectItems.reduce(
+        uniqueProjectItems.reduce(
           (
             total,
             project
@@ -661,7 +670,7 @@ export const getDashboardAnalytics =
 
       const averageProgress =
         totalProjects > 0
-          ? projectItems.reduce(
+          ? uniqueProjectItems.reduce(
               (
                 total,
                 project
@@ -682,7 +691,7 @@ export const getDashboardAnalytics =
        */
 
       const highRiskProjects =
-        projectItems.filter(
+        uniqueProjectItems.filter(
           (project) =>
             normalizeRiskLevel(
               project.riskLevel
@@ -691,7 +700,7 @@ export const getDashboardAnalytics =
 
 
       const mediumRiskProjects =
-        projectItems.filter(
+        uniqueProjectItems.filter(
           (project) =>
             normalizeRiskLevel(
               project.riskLevel
@@ -700,7 +709,7 @@ export const getDashboardAnalytics =
 
 
       const lowRiskProjects =
-        projectItems.filter(
+        uniqueProjectItems.filter(
           (project) =>
             normalizeRiskLevel(
               project.riskLevel
@@ -709,7 +718,7 @@ export const getDashboardAnalytics =
 
 
       const criticalRiskProjects =
-        projectItems.filter(
+        uniqueProjectItems.filter(
           (project) =>
             normalizeRiskLevel(
               project.riskLevel
@@ -751,7 +760,7 @@ export const getDashboardAnalytics =
         criticalRiskProjects,
 
         projects:
-          projectItems,
+          uniqueProjectItems,
       };
 
     } catch (error) {
