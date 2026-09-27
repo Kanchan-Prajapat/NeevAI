@@ -263,3 +263,38 @@ export const updateProject =
       "Update project API"
     );
   };
+
+
+// ==================================================
+// DELETE PROJECT
+// ==================================================
+
+export const deleteProject =
+  async (
+    id: string
+  ): Promise<void> => {
+
+    const cleanDocumentId =
+      id.trim();
+
+    if (!cleanDocumentId) {
+      throw new Error(
+        "Project document ID is required."
+      );
+    }
+
+    const response =
+      await fetch(
+        `${API_BASE_URL}/api/projects/${encodeURIComponent(
+          cleanDocumentId
+        )}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+    await parseApiResponse(
+      response,
+      "Delete project API"
+    );
+  };

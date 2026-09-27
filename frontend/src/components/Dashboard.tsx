@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import "./Dashboard.css";
 import {
@@ -23,6 +24,8 @@ import {
 } from "lucide-react";
 
 function Dashboard() {
+  const navigate = useNavigate();
+
   const [analytics, setAnalytics] =
     useState<DashboardAnalytics | null>(null);
 
@@ -482,6 +485,16 @@ const filteredProjects = uniqueProjects.filter(
       </p>
     </div>
 
+    {filteredProjects.length > 10 && (
+      <button
+        type="button"
+        className="view-all-button"
+        onClick={() => navigate("/projects")}
+      >
+        View all {filteredProjects.length}
+      </button>
+    )}
+
   </div>
 
   <div className="dashboard-filters">
@@ -653,9 +666,15 @@ const filteredProjects = uniqueProjects.filter(
   .slice(0, 10)
   .map((project) => (
 
-    <tr
-      key={project.projectId}
-    >
+     <tr
+       key={project.projectId}
+       className="dashboard-project-row"
+       onClick={() =>
+         navigate(
+           `/projects?open=${encodeURIComponent(project.projectId)}`
+         )
+       }
+     >
 
       {/* PROJECT */}
 
