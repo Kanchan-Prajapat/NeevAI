@@ -8,6 +8,7 @@ from backend.firebase.firestore_service import (
     get_latest_project_snapshot,
     get_project_by_project_id,
     get_all_projects as firestore_get_all_projects,
+    get_project_snapshots,
 )
 
 from backend.ml.prediction_engine import (
@@ -177,6 +178,48 @@ def get_all_projects_endpoint() -> Dict[str, Any]:
             status_code=500,
             detail="Failed to fetch projects.",
         )
+
+# ---------------------------------------------------------------------------
+# Get Project Snapshots
+# ---------------------------------------------------------------------------
+
+@app.get("/api/projects/{project_id}/snapshots")
+def get_project_snapshots_endpoint(
+    project_id: str,
+) -> Dict[str, Any]:
+
+    project_id = project_id.strip()
+
+    if not project_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Project ID is required.",
+        )
+
+    try:
+        snapshots = get_project_snapshots(
+            project_id
+        )
+
+        return {
+            "success": True,
+            "projectId": project_id,
+            "count": len(snapshots),
+            "snapshots": snapshots,
+        }
+
+    except Exception as error:
+        print(
+            "Get project snapshots error:",
+            repr(error),
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to fetch project snapshots.",
+        )
+
+    
 # ---------------------------------------------------------------------------
 # Firestore → ML prediction
 # ---------------------------------------------------------------------------
