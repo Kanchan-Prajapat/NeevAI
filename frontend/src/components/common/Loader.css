@@ -1,0 +1,187 @@
+/* =========================================================
+   NEEVAI — COMMON LOADER COMPONENT
+   Clean, minimal, professional loading state
+   - Strictly uses variables.css design tokens
+   - Dark navy + primary indigo theme
+   - Smooth non-distracting ring animation
+   - Multi-size support (sm, md, lg, inline)
+========================================================= */
+
+.neevai-loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--spacing-xl);
+  box-sizing: border-box;
+  animation: neevai-loader-fade-in 0.25s ease-out;
+}
+
+.neevai-loader-container.as-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-card);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Spinner Wrapper & Rings */
+.neevai-spinner-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.neevai-spinner-ring {
+  box-sizing: border-box;
+  border-radius: var(--radius-full);
+  border-style: solid;
+  border-color: rgba(101, 88, 211, 0.18);
+  border-top-color: var(--color-primary);
+  border-right-color: var(--color-primary-light);
+  animation: neevai-spinner-spin 0.85s cubic-bezier(0.4, 0.15, 0.3, 0.9) infinite;
+}
+
+.neevai-spinner-core {
+  position: absolute;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  opacity: 0.85;
+  animation: neevai-core-pulse 1.7s ease-in-out infinite alternate;
+}
+
+/* Typography Group */
+.neevai-loader-text-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: var(--spacing-md);
+}
+
+.neevai-loader-text {
+  color: var(--color-text-secondary);
+  font-weight: 550;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+}
+
+.neevai-loader-subtext {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+/* SIZES */
+
+/* Medium (default) */
+.neevai-loader-container.size-md .neevai-spinner-ring {
+  width: 34px;
+  height: 34px;
+  border-width: 2.5px;
+}
+.neevai-loader-container.size-md .neevai-spinner-core {
+  width: 6px;
+  height: 6px;
+}
+.neevai-loader-container.size-md .neevai-loader-text {
+  font-size: 13.5px;
+}
+
+/* Small */
+.neevai-loader-container.size-sm {
+  padding: var(--spacing-md);
+}
+.neevai-loader-container.size-sm .neevai-spinner-ring {
+  width: 24px;
+  height: 24px;
+  border-width: 2px;
+}
+.neevai-loader-container.size-sm .neevai-spinner-core {
+  width: 4px;
+  height: 4px;
+}
+.neevai-loader-container.size-sm .neevai-loader-text-group {
+  margin-top: var(--spacing-sm);
+}
+.neevai-loader-container.size-sm .neevai-loader-text {
+  font-size: 12.5px;
+}
+
+/* Large */
+.neevai-loader-container.size-lg .neevai-spinner-ring {
+  width: 46px;
+  height: 46px;
+  border-width: 3px;
+}
+.neevai-loader-container.size-lg .neevai-spinner-core {
+  width: 8px;
+  height: 8px;
+}
+.neevai-loader-container.size-lg .neevai-loader-text-group {
+  margin-top: var(--spacing-lg);
+}
+.neevai-loader-container.size-lg .neevai-loader-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* Inline */
+.neevai-loader-container.size-inline {
+  flex-direction: row;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+}
+.neevai-loader-container.size-inline .neevai-spinner-ring {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+}
+.neevai-loader-container.size-inline .neevai-spinner-core {
+  width: 3px;
+  height: 3px;
+}
+.neevai-loader-container.size-inline .neevai-loader-text-group {
+  margin-top: 0;
+  align-items: flex-start;
+  text-align: left;
+}
+.neevai-loader-container.size-inline .neevai-loader-text {
+  font-size: 13px;
+}
+
+/* ANIMATIONS */
+@keyframes neevai-spinner-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes neevai-core-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0.9;
+  }
+}
+
+@keyframes neevai-loader-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -9,6 +9,7 @@ import type {
   DashboardAnalytics,
 } from "../services/projectAnalyticsService";
 import DashboardLayout from "./DashboardLayout";
+import Loader from "./common/Loader";
 
 import {
   LayoutDashboard,
@@ -81,11 +82,11 @@ const [riskFilter, setRiskFilter] =
 
   if (loading) {
     return (
-      <div>
-        <h2>
-          Loading Dashboard...
-        </h2>
-      </div>
+      <DashboardLayout>
+        <div className="dashboard-page">
+          <Loader text="Loading dashboard analytics..." minHeight={380} />
+        </div>
+      </DashboardLayout>
     );
   }
 

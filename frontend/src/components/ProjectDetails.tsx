@@ -1909,7 +1909,7 @@ return "Calculated execution risk remained stable across the available snapshots
           PAGE HEADER
       ====================================== */}
       <div className="project-details-header">
-        <div>
+        <div className="project-header-info">
           <button
             type="button"
             className="back-button"
@@ -2769,18 +2769,18 @@ return "Calculated execution risk remained stable across the available snapshots
               </div>
             </div>
 
-          <div>
-  <span>Progress Change</span>
-  <strong>
-    {snapshot.progressChange === null
-      ? "Baseline"
-      : snapshot.progressChange > 0
-      ? `↑ +${snapshot.progressChange.toFixed(1)} pp`
-      : snapshot.progressChange < 0
-      ? `↓ ${snapshot.progressChange.toFixed(1)} pp`
-      : "→ 0.0 pp"}
-  </strong>
-</div>
+            <div className="snapshot-history-change">
+              <span>Progress Change</span>
+              <strong>
+                {snapshot.progressChange === null
+                  ? "Baseline"
+                  : snapshot.progressChange > 0
+                  ? `↑ +${snapshot.progressChange.toFixed(1)} pp`
+                  : snapshot.progressChange < 0
+                  ? `↓ ${snapshot.progressChange.toFixed(1)} pp`
+                  : "→ 0.0 pp"}
+              </strong>
+            </div>
 
 
             <p className="snapshot-history-remarks">
