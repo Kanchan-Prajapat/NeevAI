@@ -48,17 +48,17 @@ const [riskFilter, setRiskFilter] =
   useState("All");
 
   useEffect(() => {
-    loadDashboard();
+    loadDashboard(false);
   }, []);
 
 
-  const loadDashboard = async () => {
+  const loadDashboard = async (force = false) => {
     try {
       setLoading(true);
       setError(null);
 
       const data =
-        await getDashboardAnalytics();
+        await getDashboardAnalytics(force);
 
       console.log(
         "Dashboard analytics:",
@@ -102,7 +102,7 @@ const [riskFilter, setRiskFilter] =
         </h2>
 
         <button
-          onClick={loadDashboard}
+          onClick={() => loadDashboard(true)}
         >
           Retry
         </button>
@@ -200,7 +200,7 @@ const filteredProjects = uniqueProjects.filter(
 
         <button
           className="refresh-button"
-          onClick={loadDashboard}
+          onClick={() => loadDashboard(true)}
         >
           <RefreshCw size={18} />
           Refresh Data

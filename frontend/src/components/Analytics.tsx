@@ -86,7 +86,9 @@ const [
   ========================================= */
 
   const loadAnalytics =
-    async () => {
+    async (
+      force = false
+    ) => {
 
       try {
 
@@ -99,8 +101,8 @@ const [
   data,
   snapshotData,
 ] = await Promise.all([
-  getDashboardAnalytics(),
-  getAllProjectSnapshots(),
+  getDashboardAnalytics(force),
+  getAllProjectSnapshots(force),
 ]);
 
 console.log(
@@ -198,7 +200,7 @@ setSnapshots(snapshotData);
 
             <button
               type="button"
-              onClick={loadAnalytics}
+              onClick={() => loadAnalytics(true)}
             >
 
               Retry
@@ -512,7 +514,7 @@ console.log("PROGRESS CHART DATA:", progressChartData);
           <button
             type="button"
             className="analytics-refresh-button"
-            onClick={loadAnalytics}
+            onClick={() => loadAnalytics(true)}
           >
 
             <RefreshCw

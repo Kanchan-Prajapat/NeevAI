@@ -71,6 +71,7 @@ function DashboardLayout({
   const [profileRole, setProfileRole] = useState("Administrator");
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<string[]>([]);
+  const [notificationsLoaded, setNotificationsLoaded] = useState(false);
 
   const pageMeta = useMemo(() => {
     const exact = PAGE_META[location.pathname];
@@ -95,46 +96,48 @@ function DashboardLayout({
     }
   }, [location.pathname]);
 
-  useEffect(() => {
-    const loadNotifications = async () => {
-      try {
-        const analytics = await getDashboardAnalytics();
-        const alerts: string[] = [];
+  const loadNotifications = async () => {
+    if (notificationsLoaded) {
+      return;
+    }
 
-        if (analytics.criticalRiskProjects > 0) {
-          alerts.push(
-            `${analytics.criticalRiskProjects} project${analytics.criticalRiskProjects === 1 ? "" : "s"} marked critical risk.`
-          );
-        }
+    try {
+      const analytics = await getDashboardAnalytics();
+      const alerts: string[] = [];
 
-        if (analytics.highRiskProjects > 0) {
-          alerts.push(
-            `${analytics.highRiskProjects} high-risk project${analytics.highRiskProjects === 1 ? "" : "s"} need review.`
-          );
-        }
-
-        const stalled = analytics.projects.filter(
-          (project) => project.status?.trim().toLowerCase() === "stalled"
-        ).length;
-
-        if (stalled > 0) {
-          alerts.push(
-            `${stalled} stalled project${stalled === 1 ? "" : "s"} in the current portfolio.`
-          );
-        }
-
-        setNotifications(
-          alerts.length > 0
-            ? alerts
-            : ["No new risk alerts in the current project set."]
+      if (analytics.criticalRiskProjects > 0) {
+        alerts.push(
+          `${analytics.criticalRiskProjects} project${analytics.criticalRiskProjects === 1 ? "" : "s"} marked critical risk.`
         );
-      } catch {
-        setNotifications(["Could not load notification alerts."]);
       }
-    };
 
-    loadNotifications();
-  }, []);
+      if (analytics.highRiskProjects > 0) {
+        alerts.push(
+          `${analytics.highRiskProjects} high-risk project${analytics.highRiskProjects === 1 ? "" : "s"} need review.`
+        );
+      }
+
+      const stalled = analytics.projects.filter(
+        (project) => project.status?.trim().toLowerCase() === "stalled"
+      ).length;
+
+      if (stalled > 0) {
+        alerts.push(
+          `${stalled} stalled project${stalled === 1 ? "" : "s"} in the current portfolio.`
+        );
+      }
+
+      setNotifications(
+        alerts.length > 0
+          ? alerts
+          : ["No new risk alerts in the current project set."]
+      );
+    } catch {
+      setNotifications(["Could not load notification alerts."]);
+    } finally {
+      setNotificationsLoaded(true);
+    }
+  };
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
@@ -258,9 +261,17 @@ function DashboardLayout({
               <button
                 type="button"
                 className="notification-button"
-                onClick={() =>
-                  setShowNotifications((current) => !current)
-                }
+                onClick={() => {
+                  setShowNotifications((current) => {
+                    const next = !current;
+
+                    if (next) {
+                      void loadNotifications();
+                    }
+
+                    return next;
+                  });
+                }}
                 aria-label="Open notifications"
               >
                 <Bell size={20} />

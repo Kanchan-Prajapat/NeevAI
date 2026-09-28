@@ -2,6 +2,12 @@ import type {
   Project,
 } from "../../../shared/types";
 
+import {
+  CACHE_KEYS,
+  cachedFetch,
+  invalidatePortfolioCache,
+} from "./dataCache";
+
 
 // ==================================================
 // API BASE URL
@@ -131,11 +137,15 @@ export const createProject = async (
     );
   }
 
-  return (
+  const documentId = (
     data as {
       documentId: string;
     }
   ).documentId;
+
+  invalidatePortfolioCache();
+
+  return documentId;
 };
 
 
@@ -144,38 +154,46 @@ export const createProject = async (
 // ==================================================
 
 export const getProjects =
-  async (): Promise<Project[]> => {
+  async (
+    force = false
+  ): Promise<Project[]> => {
 
-    const response =
-      await fetch(
-        `${API_BASE_URL}/api/projects`
-      );
+    return cachedFetch(
+      CACHE_KEYS.projects,
+      async () => {
+        const response =
+          await fetch(
+            `${API_BASE_URL}/api/projects`
+          );
 
-    const data =
-      await parseApiResponse(
-        response,
-        "Projects API"
-      );
+        const data =
+          await parseApiResponse(
+            response,
+            "Projects API"
+          );
 
-    const projects =
-      typeof data === "object" &&
-      data !== null &&
-      "projects" in data &&
-      Array.isArray(
-        (
-          data as {
-            projects?: unknown;
-          }
-        ).projects
-      )
-        ? (
-            data as {
-              projects: Project[];
-            }
-          ).projects
-        : [];
+        const projects =
+          typeof data === "object" &&
+          data !== null &&
+          "projects" in data &&
+          Array.isArray(
+            (
+              data as {
+                projects?: unknown;
+              }
+            ).projects
+          )
+            ? (
+                data as {
+                  projects: Project[];
+                }
+              ).projects
+            : [];
 
-    return projects;
+        return projects;
+      },
+      { force }
+    );
   };
 
 
@@ -262,6 +280,8 @@ export const updateProject =
       response,
       "Update project API"
     );
+
+    invalidatePortfolioCache();
   };
 
 
@@ -297,4 +317,6 @@ export const deleteProject =
       response,
       "Delete project API"
     );
+
+    invalidatePortfolioCache();
   };
