@@ -35,11 +35,11 @@ function Reports() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadReports = async () => {
+  const loadReports = async (force = false) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getDashboardAnalytics();
+      const data = await getDashboardAnalytics(force);
       setAnalytics(data);
     } catch (err) {
       console.error("Failed to load reports:", err);
@@ -136,7 +136,7 @@ function Reports() {
             <button
               type="button"
               className="reports-secondary-button"
-              onClick={loadReports}
+              onClick={() => loadReports(true)}
             >
               <RefreshCw size={17} />
               Refresh
@@ -161,7 +161,7 @@ function Reports() {
         {!loading && error && (
           <div className="reports-message error">
             <p>{error}</p>
-            <button type="button" onClick={loadReports}>
+            <button type="button" onClick={() => loadReports(true)}>
               Retry
             </button>
           </div>

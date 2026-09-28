@@ -4,7 +4,6 @@ import React from "react";
 import type {
   Project,
   ProjectSnapshot,
-  Prediction,
 } from "../../../shared/types";
 
 import {
@@ -28,16 +27,10 @@ import {
 } from "../services/projectIntelligenceService";
 
 import {
-  getDashboardAnalytics,
-  type DashboardAnalytics,
-} from "../services/projectAnalyticsService";
-
-import {
   getAllProjectSnapshots,
 } from "../services/projectSnapshotService";
 
 import {
-  getPredictionsByProjectId,
   getMLProjectPrediction,
   getNextMonthProgressPrediction,
 } from "../services/predictionService";
@@ -1023,9 +1016,6 @@ const handleAskProjectIntelligence = async () => {
   const [benchmarkLoading, setBenchmarkLoading] = useState(false);
   const [benchmarkError, setBenchmarkError] = useState<string | null>(null);
 
-  const [prediction, setPrediction] = useState<Prediction | null>(null);
-  const [_dashboardAnalytics, setDashboardAnalytics] = useState<DashboardAnalytics | null>(null);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -1038,95 +1028,16 @@ const handleAskProjectIntelligence = async () => {
         setLoading(true);
         setError(null);
 
-        const [allSnapshots, predictions] = await Promise.all([
-          getAllProjectSnapshots(),
-          getPredictionsByProjectId(project.projectId),
-        ]);
-
+        const allSnapshots = await getAllProjectSnapshots();
         if (!isMounted) return;
-
-        setMlPredictionLoading(true);
-        setMlPredictionError(null);
-
-        try {
-          const mlResult = await getMLProjectPrediction(project.projectId);
-          if (isMounted) setMlPrediction(mlResult);
-        } catch (mlError) {
-          console.error("ML prediction unavailable:", mlError);
-          if (isMounted) {
-            setMlPrediction(null);
-            setMlPredictionError(
-              mlError instanceof Error ? mlError.message : "ML prediction unavailable."
-            );
-          }
-        } finally {
-          if (isMounted) setMlPredictionLoading(false);
-        }
-
-        if (!isMounted) return;
-        setTemporalPredictionLoading(true);
-        setTemporalPredictionError(null);
-
-        try {
-          const temporalResult = await getNextMonthProgressPrediction(project.projectId);
-          if (isMounted) setTemporalPrediction(temporalResult);
-        } catch (temporalError) {
-          console.error("Temporal progress prediction unavailable:", temporalError);
-          if (isMounted) {
-            setTemporalPrediction(null);
-            setTemporalPredictionError(
-              temporalError instanceof Error
-                ? temporalError.message
-                : "Temporal progress prediction unavailable."
-            );
-          }
-        } finally {
-          if (isMounted) setTemporalPredictionLoading(false);
-        }
-
-        if (!isMounted) return;
-        try {
-          setBenchmarkLoading(true);
-          setBenchmarkError(null);
-
-          const fetchedBenchmarks = await getBenchmarkProjects(project);
-          if (isMounted) {
-            setBenchmarkProjects(fetchedBenchmarks.slice(0, 4));
-          }
-        } catch (benchError) {
-          console.error("Benchmark loading failed:", benchError);
-          if (isMounted) {
-            setBenchmarkError(
-              benchError instanceof Error
-                ? benchError.message
-                : "Unable to load benchmark projects."
-            );
-          }
-        } finally {
-          if (isMounted) setBenchmarkLoading(false);
-        }
 
         const filteredSnapshots = allSnapshots.filter(
           (snapshot) => snapshot.projectId === project.projectId
         );
-
-        const analyticsData = await getDashboardAnalytics();
-        if (isMounted) {
-          setDashboardAnalytics(analyticsData);
-        }
-
         const latest = getLatestSnapshot(filteredSnapshots);
 
-        if (isMounted) {
-          setProjectSnapshots(filteredSnapshots);
-          setLatestSnapshot(latest);
-
-          if (predictions && predictions.length > 0) {
-            setPrediction(predictions[0]);
-          } else {
-            setPrediction(null);
-          }
-        }
+        setProjectSnapshots(filteredSnapshots);
+        setLatestSnapshot(latest);
       } catch (err) {
         console.error("Failed to load project details:", err);
         if (isMounted) {
@@ -1140,6 +1051,74 @@ const handleAskProjectIntelligence = async () => {
     }
 
     loadProjectDetails();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [project.projectId]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadDeferredInsights() {
+      setMlPredictionLoading(true);
+      setMlPredictionError(null);
+      setTemporalPredictionLoading(true);
+      setTemporalPredictionError(null);
+      setBenchmarkLoading(true);
+      setBenchmarkError(null);
+
+      const [mlResult, temporalResult, benchmarkResult] = await Promise.allSettled([
+        getMLProjectPrediction(project.projectId),
+        getNextMonthProgressPrediction(project.projectId),
+        getBenchmarkProjects(project),
+      ]);
+
+      if (!isMounted) return;
+
+      if (mlResult.status === "fulfilled") {
+        setMlPrediction(mlResult.value);
+      } else {
+        console.error("ML prediction unavailable:", mlResult.reason);
+        setMlPrediction(null);
+        setMlPredictionError(
+          mlResult.reason instanceof Error
+            ? mlResult.reason.message
+            : "ML prediction unavailable."
+        );
+      }
+      setMlPredictionLoading(false);
+
+      if (temporalResult.status === "fulfilled") {
+        setTemporalPrediction(temporalResult.value);
+      } else {
+        console.error(
+          "Temporal progress prediction unavailable:",
+          temporalResult.reason
+        );
+        setTemporalPrediction(null);
+        setTemporalPredictionError(
+          temporalResult.reason instanceof Error
+            ? temporalResult.reason.message
+            : "Temporal progress prediction unavailable."
+        );
+      }
+      setTemporalPredictionLoading(false);
+
+      if (benchmarkResult.status === "fulfilled") {
+        setBenchmarkProjects(benchmarkResult.value.slice(0, 4));
+      } else {
+        console.error("Benchmark loading failed:", benchmarkResult.reason);
+        setBenchmarkError(
+          benchmarkResult.reason instanceof Error
+            ? benchmarkResult.reason.message
+            : "Unable to load benchmark projects."
+        );
+      }
+      setBenchmarkLoading(false);
+    }
+
+    loadDeferredInsights();
 
     return () => {
       isMounted = false;

@@ -11,13 +11,12 @@ import {
   getAllProjectSnapshots,
 } from "./projectSnapshotService";
 
-import {
-  getPredictionsByProjectId,
-} from "./predictionService";
+import { calculateProjectRisk } from "./riskService";
 
 import {
-  getDerivedMetricBySnapshot,
-} from "./derivedMetricService";
+  CACHE_KEYS,
+  cachedFetch,
+} from "./dataCache";
 
 /* =========================================
    DASHBOARD PROJECT ITEM
@@ -286,151 +285,136 @@ const normalizeRiskLevel = (
    MAIN DASHBOARD ANALYTICS
 ========================================= */
 
-export const getDashboardAnalytics =
-  async (): Promise<DashboardAnalytics> => {
-    try {
-      /*
-       * =====================================
-       * LOAD PROJECTS + SNAPSHOTS ONCE
-       * =====================================
-       */
+const getSnapshotDataStatus = (
+  snapshot?: ProjectSnapshot
+): Prediction["dataStatus"] | undefined => {
+  if (!snapshot) {
+    return "insufficient_data";
+  }
 
-      const [
-        projects,
-        snapshots,
-      ] = await Promise.all([
-        getProjects(),
-        getAllProjectSnapshots(),
-      ]);
+  const hasCost =
+    snapshot.revisedCostCr != null ||
+    snapshot.originalCostCr != null;
+  const hasSpend =
+    snapshot.cumulativeExpenditureCr != null;
+  const hasProgress =
+    snapshot.physicalProgressPct != null;
 
+  if (hasCost && hasSpend && hasProgress) {
+    return "complete";
+  }
 
-      /*
-       * =====================================
-       * CREATE LATEST SNAPSHOT MAP
-       * =====================================
-       */
+  if (hasCost || hasSpend || hasProgress) {
+    return "partial";
+  }
 
+  return "insufficient_data";
+};
+
+const buildDashboardAnalytics = (
+  projects: Project[],
+  snapshots: ProjectSnapshot[]
+): DashboardAnalytics => {
       const latestSnapshots =
         getLatestSnapshotsMap(
           snapshots
         );
 
+      const snapshotsByProject =
+        new Map<string, ProjectSnapshot[]>();
 
-      /*
-       * =====================================
-       * BUILD PROJECT DASHBOARD ITEMS
-       * =====================================
-       */
+      for (const snapshot of snapshots) {
+        const existing =
+          snapshotsByProject.get(
+            snapshot.projectId
+          );
+
+        if (existing) {
+          existing.push(snapshot);
+        } else {
+          snapshotsByProject.set(
+            snapshot.projectId,
+            [snapshot]
+          );
+        }
+      }
 
       const projectItems =
-        await Promise.all(
-          projects.map(
-            async (
-              project: Project
-            ): Promise<ProjectDashboardItem> => {
-
-              /*
-               * ---------------------------------
-               * GET LATEST SNAPSHOT
-               * ---------------------------------
-               */
+        projects.map(
+          (
+            project: Project
+          ): ProjectDashboardItem => {
 
               const latestSnapshot =
                 latestSnapshots.get(
                   project.projectId
                 );
 
-
-              /*
-               * ---------------------------------
-               * GET OLD PREDICTION
-               * ---------------------------------
-               *
-               * Kept temporarily for existing
-               * dashboard compatibility.
-               */
-
-              let prediction:
-                | Prediction
-                | null = null;
-
-              try {
-                const predictions =
-                  await getPredictionsByProjectId(
-                    project.projectId
-                  );
-
-                if (
-                  predictions &&
-                  predictions.length > 0
-                ) {
-                  prediction =
-                    predictions.reduce(
-                      (
-                        latest,
-                        current
-                      ) => {
-                        const latestTime =
-                          getTimestampMilliseconds(
-                            latest.createdAt
-                          );
-
-                        const currentTime =
-                          getTimestampMilliseconds(
-                            current.createdAt
-                          );
-
-                        return currentTime >
-                          latestTime
-                          ? current
-                          : latest;
-                      }
-                    );
-                }
-              } catch (error) {
-                console.error(
-                  `Failed to load predictions for ${project.projectId}`,
-                  error
-                );
-              }
-
-
-              /*
-               * ---------------------------------
-               * GET PHASE 4 DERIVED METRIC
-               * ---------------------------------
-               */
-
               let derivedMetric:
                 | DerivedMetric
                 | null = null;
 
-              if (latestSnapshot?.id) {
+              if (latestSnapshot) {
+                const projectSnapshots =
+                  snapshotsByProject.get(
+                    project.projectId
+                  ) ?? [];
+
+                const previousSnapshot =
+                  projectSnapshots
+                    .filter(
+                      (snapshot) =>
+                        snapshot !== latestSnapshot
+                    )
+                    .sort(
+                      (left, right) =>
+                        getTimestampMilliseconds(
+                          right.reportDate
+                        ) -
+                        getTimestampMilliseconds(
+                          left.reportDate
+                        )
+                    )[0];
+
                 try {
-                  derivedMetric =
-                    await getDerivedMetricBySnapshot(
-                      project.projectId,
-                      latestSnapshot.id
+                  const risk =
+                    calculateProjectRisk(
+                      project,
+                      latestSnapshot,
+                      previousSnapshot
                     );
+
+                  derivedMetric = {
+                    projectId:
+                      project.projectId,
+                    snapshotId:
+                      latestSnapshot.id,
+                    financialProgress:
+                      risk.financialProgress,
+                    physicalProgress:
+                      risk.physicalProgress,
+                    costVariance:
+                      risk.costVariance,
+                    expectedVelocity:
+                      risk.expectedVelocity,
+                    actualVelocity:
+                      risk.actualVelocity,
+                    scheduleVariance:
+                      risk.scheduleVariance,
+                    riskComponents:
+                      risk.riskComponents,
+                    overallRiskScore:
+                      risk.overallRiskScore,
+                    riskLevel:
+                      risk.riskLevel,
+                  };
                 } catch (error) {
                   console.error(
-                    `Failed to load derived metrics for ${project.projectId}`,
+                    `Failed to calculate risk for ${project.projectId}`,
                     error
                   );
                 }
               }
-
-
-              /*
-               * ---------------------------------
-               * BUDGET
-               * ---------------------------------
-               *
-               * Prefer revised cost from the
-               * latest snapshot.
-               *
-               * Fall back to original project cost.
-               */
 
               const budget =
                 safeNumber(
@@ -441,15 +425,6 @@ export const getDashboardAnalytics =
                   )
                 );
 
-
-              /*
-               * ---------------------------------
-               * EXPENDITURE
-               * ---------------------------------
-               *
-               * Latest snapshot only.
-               */
-
               const expenditure =
                 safeNumber(
                   croreToRupees(
@@ -458,39 +433,15 @@ export const getDashboardAnalytics =
                   )
                 );
 
-
-              /*
-               * ---------------------------------
-               * PHYSICAL PROGRESS
-               * ---------------------------------
-               */
-
               const progressPercentage =
                 safeNumber(
                   latestSnapshot
                     ?.physicalProgressPct
                 );
 
-
-              /*
-               * ---------------------------------
-               * STATUS
-               * ---------------------------------
-               *
-               * Status belongs to the snapshot
-               * in the current Project schema.
-               */
-
               const status =
                 latestSnapshot
                   ?.projectStatus;
-
-
-              /*
-               * ---------------------------------
-               * RETURN DASHBOARD ITEM
-               * ---------------------------------
-               */
 
               return {
                 projectId:
@@ -526,21 +477,12 @@ export const getDashboardAnalytics =
                   latestSnapshot
                     ?.reportDate,
 
-                /*
-                 * Existing prediction kept
-                 * for compatibility.
-                 */
-
-                prediction,
+                prediction: null,
 
                 dataStatus:
-                  prediction
-                    ?.dataStatus,
-
-                /*
-                 * Phase 4 risk is now sourced
-                 * from DerivedMetric.
-                 */
+                  getSnapshotDataStatus(
+                    latestSnapshot
+                  ),
 
                 riskLevel:
                   derivedMetric
@@ -554,8 +496,7 @@ export const getDashboardAnalytics =
                   derivedMetric
                     ?.riskComponents,
               };
-            }
-          )
+          }
         );
 
       const uniqueProjectItems = Array.from(
@@ -762,7 +703,31 @@ export const getDashboardAnalytics =
         projects:
           uniqueProjectItems,
       };
+};
 
+export const getDashboardAnalytics =
+  async (
+    force = false
+  ): Promise<DashboardAnalytics> => {
+    try {
+      return await cachedFetch(
+        CACHE_KEYS.dashboardAnalytics,
+        async () => {
+          const [
+            projects,
+            snapshots,
+          ] = await Promise.all([
+            getProjects(force),
+            getAllProjectSnapshots(force),
+          ]);
+
+          return buildDashboardAnalytics(
+            projects,
+            snapshots
+          );
+        },
+        { force }
+      );
     } catch (error) {
       console.error(
         "Failed to generate dashboard analytics:",

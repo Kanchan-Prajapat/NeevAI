@@ -116,7 +116,9 @@ const [
 
 
   const loadProjects =
-    async (): Promise<void> => {
+    async (
+      force = false
+    ): Promise<void> => {
 
       try {
 
@@ -126,7 +128,7 @@ const [
 
 
         const analytics =
-          await getDashboardAnalytics();
+          await getDashboardAnalytics(force);
 
 
         setProjects(
@@ -355,7 +357,7 @@ const [
             false
           );
 
-          loadProjects();
+          loadProjects(true);
 
         }}
 
@@ -391,7 +393,7 @@ const [
 
         onSuccess={async () => {
 
-          await loadProjects();
+          await loadProjects(true);
 
 
           setShowEditProjectForm(
@@ -430,7 +432,7 @@ if (
       onSuccess={async () => {
         setShowAddSnapshotForm(false);
 
-        await loadProjects();
+        await loadProjects(true);
       }}
     />
   );
@@ -471,7 +473,7 @@ if (
     );
 
     setSelectedProject(null);
-    await loadProjects();
+    await loadProjects(true);
   }}
 />
 
@@ -555,7 +557,7 @@ if (
           <button
             type="button"
             className="refresh-projects-button"
-            onClick={loadProjects}
+            onClick={() => loadProjects(true)}
           >
 
             <RefreshCw size={18} />
@@ -597,7 +599,7 @@ if (
 
             <button
               type="button"
-              onClick={loadProjects}
+              onClick={() => loadProjects(true)}
             >
               Retry
             </button>
