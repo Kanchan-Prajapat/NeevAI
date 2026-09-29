@@ -527,7 +527,7 @@ cursor: pointer;
 .project-table-wrapper {
   width: 100%;
 
-  overflow-x: hidden;
+  overflow-x: auto;
 
   border:
     1px solid var(--color-border);
@@ -544,9 +544,9 @@ cursor: pointer;
 
 
 .project-table {
-  width: 100%;
+  width: max-content;
 
-  min-width: 0;
+  min-width: 100%;
 
   border-collapse:
     collapse;
@@ -565,9 +565,11 @@ cursor: pointer;
 
 .project-table th:nth-child(1),
 .project-table td:nth-child(1) {
-  width: 32%;
+  width: 280px;
 
-  max-width: 0;
+  min-width: 280px;
+
+  max-width: 280px;
 }
 
 
@@ -575,7 +577,9 @@ cursor: pointer;
 
 .project-table th:nth-child(2),
 .project-table td:nth-child(2) {
-  width: 7%;
+  width: 120px;
+
+  min-width: 120px;
 }
 
 
@@ -583,7 +587,9 @@ cursor: pointer;
 
 .project-table th:nth-child(3),
 .project-table td:nth-child(3) {
-  width: 9%;
+  width: 150px;
+
+  min-width: 150px;
 }
 
 
@@ -591,7 +597,9 @@ cursor: pointer;
 
 .project-table th:nth-child(4),
 .project-table td:nth-child(4) {
-  width: 12%;
+  width: 200px;
+
+  min-width: 200px;
 }
 
 
@@ -599,9 +607,9 @@ cursor: pointer;
 
 .project-table th:nth-child(5),
 .project-table td:nth-child(5) {
-  width: 7%;
+  width: 120px;
 
-  overflow: visible;
+  min-width: 120px;
 }
 
 
@@ -609,7 +617,9 @@ cursor: pointer;
 
 .project-table th:nth-child(6),
 .project-table td:nth-child(6) {
-  width: 11%;
+  width: 170px;
+
+  min-width: 170px;
 }
 
 
@@ -617,7 +627,9 @@ cursor: pointer;
 
 .project-table th:nth-child(7),
 .project-table td:nth-child(7) {
-  width: 7%;
+  width: 130px;
+
+  min-width: 130px;
 }
 
 
@@ -625,9 +637,9 @@ cursor: pointer;
 
 .project-table th:nth-child(8),
 .project-table td:nth-child(8) {
-  width: 5%;
+  width: 110px;
 
-  overflow: visible;
+  min-width: 110px;
 }
 
 
@@ -635,7 +647,9 @@ cursor: pointer;
 
 .project-table th:nth-child(9),
 .project-table td:nth-child(9) {
-  width: 4%;
+  width: 80px;
+
+  min-width: 80px;
 }
 
 
@@ -643,9 +657,9 @@ cursor: pointer;
 
 .project-table th:nth-child(10),
 .project-table td:nth-child(10) {
-  width: 6%;
+  width: 150px;
 
-  overflow: visible;
+  min-width: 150px;
 }
 
 
