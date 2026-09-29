@@ -16,28 +16,20 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-
   gap: var(--spacing-xl);
-
   margin-bottom: 28px;
 }
 
-
 .dashboard-page-header h2 {
   margin: 0;
-
   font-size: 28px;
   font-weight: 700;
-
   color: var(--color-text-primary);
 }
 
-
 .dashboard-page-header p {
   margin: 7px 0 0;
-
   font-size: 14px;
-
   color: var(--color-text-secondary);
 }
 
@@ -50,7 +42,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-
   gap: var(--spacing-sm);
 
   padding: 11px 16px;
@@ -59,7 +50,6 @@
   border-radius: var(--radius-md);
 
   background: var(--color-card);
-
   color: var(--color-text-primary);
 
   font-size: 14px;
@@ -73,15 +63,11 @@
     transform var(--transition-fast);
 }
 
-
 .refresh-button:hover {
   background: var(--color-card-hover);
-
   border-color: var(--color-primary);
-
   transform: translateY(-1px);
 }
-
 
 .refresh-button:active {
   transform: translateY(0);
@@ -94,12 +80,8 @@
 
 .summary-grid {
   display: grid;
-
-  grid-template-columns:
-    repeat(4, minmax(0, 1fr));
-
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
-
   margin-bottom: 22px;
 }
 
@@ -112,19 +94,14 @@
   position: relative;
 
   min-height: 170px;
-
   padding: 22px;
 
-  border:
-    1px solid var(--color-border);
-
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
 
-  background:
-    var(--color-card);
+  background: var(--color-card);
 
-  box-shadow:
-    var(--shadow-md);
+  box-shadow: var(--shadow-md);
 
   transition:
     transform var(--transition-fast),
@@ -132,15 +109,10 @@
     background var(--transition-fast);
 }
 
-
 .summary-card:hover {
   transform: translateY(-3px);
-
-  border-color:
-    var(--color-primary);
-
-  background:
-    var(--color-card-hover);
+  border-color: var(--color-primary);
+  background: var(--color-card-hover);
 }
 
 
@@ -160,29 +132,18 @@
 
   border-radius: 11px;
 
-  background:
-    var(--color-primary-soft);
-
-  color:
-    var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
 }
-
 
 .card-icon.warning {
-  background:
-    var(--color-warning-soft);
-
-  color:
-    var(--color-warning);
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
 }
 
-
 .card-icon.success {
-  background:
-    var(--color-success-soft);
-
-  color:
-    var(--color-success);
+  background: var(--color-success-soft);
+  color: var(--color-success);
 }
 
 
@@ -192,15 +153,11 @@
 
 .summary-card > span {
   display: block;
-
   margin-bottom: 8px;
 
   font-size: 14px;
-
-  color:
-    var(--color-text-secondary);
+  color: var(--color-text-secondary);
 }
-
 
 .summary-card h3 {
   margin: 0 0 8px;
@@ -208,18 +165,14 @@
   font-size: 28px;
   font-weight: 700;
 
-  color:
-    var(--color-text-primary);
+  color: var(--color-text-primary);
 }
-
 
 .summary-card p {
   margin: 0;
 
   font-size: 13px;
-
-  color:
-    var(--color-text-muted);
+  color: var(--color-text-muted);
 }
 
 
@@ -229,12 +182,9 @@
 
 .financial-grid {
   display: grid;
-
-  grid-template-columns:
-    repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 
   gap: 18px;
-
   margin-bottom: 30px;
 }
 
@@ -245,26 +195,18 @@
 
 .financial-card {
   display: flex;
-
   align-items: center;
-
   gap: 16px;
 
   min-height: 110px;
-
   padding: 20px;
 
-  border:
-    1px solid var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
 
-  border-radius:
-    var(--radius-lg);
+  background: var(--color-card);
 
-  background:
-    var(--color-card);
-
-  box-shadow:
-    var(--shadow-sm);
+  box-shadow: var(--shadow-sm);
 
   transition:
     transform var(--transition-fast),
@@ -272,17 +214,11 @@
     background var(--transition-fast);
 }
 
-
 .financial-card:hover {
   transform: translateY(-2px);
-
-  border-color:
-    var(--color-primary);
-
-  background:
-    var(--color-card-hover);
+  border-color: var(--color-primary);
+  background: var(--color-card-hover);
 }
-
 
 .financial-card > svg {
   width: 46px;
@@ -292,35 +228,25 @@
 
   border-radius: 12px;
 
-  background:
-    var(--color-primary-soft);
-
-  color:
-    var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
 
   flex-shrink: 0;
 }
 
-
 .financial-card span {
   display: block;
-
   margin-bottom: 7px;
 
   font-size: 13px;
-
-  color:
-    var(--color-text-secondary);
+  color: var(--color-text-secondary);
 }
-
 
 .financial-card h3 {
   margin: 0;
 
   font-size: 20px;
-
-  color:
-    var(--color-text-primary);
+  color: var(--color-text-primary);
 }
 
 
@@ -333,16 +259,13 @@
   margin-top: 30px;
 }
 
-
 .section-heading {
   display: flex;
-
   align-items: center;
   justify-content: space-between;
 
   margin-bottom: 16px;
 }
-
 
 .section-heading h2 {
   margin: 0;
@@ -350,18 +273,14 @@
   font-size: 20px;
   font-weight: 700;
 
-  color:
-    var(--color-text-primary);
+  color: var(--color-text-primary);
 }
-
 
 .section-heading p {
   margin: 6px 0 0;
 
   font-size: 13px;
-
-  color:
-    var(--color-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 
@@ -371,9 +290,7 @@
 
 .risk-grid {
   display: grid;
-
-  grid-template-columns:
-    repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 
   gap: 18px;
 }
@@ -385,62 +302,47 @@
 
 .risk-card {
   min-height: 130px;
-
   padding: 20px;
 
-cursor: pointer;
-  border:
-    1px solid var(--color-border);
+  cursor: pointer;
 
+  border: 1px solid var(--color-border);
   border-top-width: 3px;
 
-  border-radius:
-    var(--radius-lg);
+  border-radius: var(--radius-lg);
 
-  background:
-    var(--color-card);
+  background: var(--color-card);
 
-  box-shadow:
-    var(--shadow-sm);
+  box-shadow: var(--shadow-sm);
 
   transition:
     transform var(--transition-fast),
     background var(--transition-fast);
 }
 
-
 .risk-card:hover {
   transform: translateY(-2px);
-
-  background:
-    var(--color-card-hover);
+  background: var(--color-card-hover);
 }
-
 
 .risk-card span {
   font-size: 14px;
-
   font-weight: 600;
 }
-
 
 .risk-card h3 {
   margin: 14px 0 8px;
 
   font-size: 28px;
 
-  color:
-    var(--color-text-primary);
+  color: var(--color-text-primary);
 }
-
 
 .risk-card p {
   margin: 0;
 
   font-size: 13px;
-
-  color:
-    var(--color-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 
@@ -449,14 +351,11 @@ cursor: pointer;
 ========================================= */
 
 .high-risk {
-  border-top-color:
-    var(--color-danger);
+  border-top-color: var(--color-danger);
 }
 
-
 .high-risk span {
-  color:
-    var(--color-danger);
+  color: var(--color-danger);
 }
 
 
@@ -465,14 +364,11 @@ cursor: pointer;
 ========================================= */
 
 .medium-risk {
-  border-top-color:
-    var(--color-warning);
+  border-top-color: var(--color-warning);
 }
 
-
 .medium-risk span {
-  color:
-    var(--color-warning);
+  color: var(--color-warning);
 }
 
 
@@ -481,14 +377,11 @@ cursor: pointer;
 ========================================= */
 
 .low-risk {
-  border-top-color:
-    var(--color-success);
+  border-top-color: var(--color-success);
 }
 
-
 .low-risk span {
-  color:
-    var(--color-success);
+  color: var(--color-success);
 }
 
 
@@ -496,36 +389,49 @@ cursor: pointer;
    PROJECT TABLE
 ========================================= */
 
+/*
+   The table is intentionally wider than the viewport.
+   Users can scroll horizontally to see all columns.
+*/
+
 .project-table-wrapper {
   width: 100%;
 
   overflow-x: auto;
+  overflow-y: hidden;
 
-  border:
-    1px solid var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
 
-  border-radius:
-    var(--radius-lg);
+  background: var(--color-card);
 
-  background:
-    var(--color-card);
+  box-shadow: var(--shadow-md);
 
-  box-shadow:
-    var(--shadow-md);
+  /*
+     Makes the scrollbar easier to discover and use.
+  */
+  scrollbar-width: thin;
 }
 
 
+/*
+   Keep the table wide enough so columns don't get squeezed.
+*/
+
 .project-table {
   width: max-content;
+  min-width: 1700px;
 
-  min-width: 100%;
-
-  border-collapse:
-    collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 
   table-layout: fixed;
 }
 
+
+/* =========================================
+   TABLE CELLS
+========================================= */
 
 .project-table th,
 .project-table td {
@@ -533,87 +439,91 @@ cursor: pointer;
 }
 
 
-/* Project column */
+/* =========================================
+   COLUMN WIDTHS
+========================================= */
 
+/* Project */
 .project-table th:nth-child(1),
 .project-table td:nth-child(1) {
-  width: 240px;
+  width: 280px;
+  min-width: 280px;
 }
 
 
 /* Type */
-
 .project-table th:nth-child(2),
 .project-table td:nth-child(2) {
-  width: 110px;
+  width: 190px;
+  min-width: 190px;
 }
 
 
 /* Domain */
-
 .project-table th:nth-child(3),
 .project-table td:nth-child(3) {
-  width: 160px;
+  width: 180px;
+  min-width: 180px;
 }
 
 
-/* Agency */
-
+/* Implementing Agency */
 .project-table th:nth-child(4),
 .project-table td:nth-child(4) {
-  width: 240px;
+  width: 270px;
+  min-width: 270px;
 }
 
 
 /* Status */
-
 .project-table th:nth-child(5),
 .project-table td:nth-child(5) {
-  width: 120px;
+  width: 140px;
+  min-width: 140px;
 
   overflow: visible;
 }
 
 
 /* Progress */
-
 .project-table th:nth-child(6),
 .project-table td:nth-child(6) {
-  width: 180px;
+  width: 190px;
+  min-width: 190px;
 }
 
 
 /* Cost */
-
 .project-table th:nth-child(7),
 .project-table td:nth-child(7) {
-  width: 140px;
+  width: 160px;
+  min-width: 160px;
 }
 
 
 /* Risk */
-
 .project-table th:nth-child(8),
 .project-table td:nth-child(8) {
-  width: 100px;
+  width: 120px;
+  min-width: 120px;
 
   overflow: visible;
 }
 
 
 /* Score */
-
 .project-table th:nth-child(9),
 .project-table td:nth-child(9) {
-  width: 80px;
+  width: 110px;
+  min-width: 110px;
 }
 
 
 /* AI Data */
-
 .project-table th:nth-child(10),
 .project-table td:nth-child(10) {
-  width: 140px;
+  width: 150px;
+  min-width: 150px;
 
   overflow: visible;
 }
@@ -625,48 +535,51 @@ cursor: pointer;
 
 .project-name-cell {
   min-width: 0;
+  max-width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
 
   overflow: hidden;
 }
 
-
-/* =========================================
-   COST
-========================================= */
-
-.project-table td:nth-child(2),
-.project-table td:nth-child(3),
-.project-table td:nth-child(4),
-.project-table td:nth-child(7) {
-  overflow: hidden;
-
-  text-overflow: ellipsis;
-}
-
-.cost-cell {
+.project-name-cell strong {
   display: block;
 
+  /*
+     Keep project names compact.
+     Long names remain on one line and use ellipsis.
+  */
+  max-width: 255px;
+
   overflow: hidden;
-
   text-overflow: ellipsis;
-
   white-space: nowrap;
 
-  font-variant-numeric: tabular-nums;
+  color: var(--color-text-primary);
+
+  font-size: 14px;
+  font-weight: 600;
 }
+
+.project-name-cell span {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
 
 /* =========================================
    TABLE HEADER
 ========================================= */
 
 .project-table th {
-  padding: 15px 18px;
+  padding: 16px 22px;
 
-  background:
-    var(--color-table-header);
+  background: var(--color-table-header);
 
-  border-bottom:
-    1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
 
   text-align: left;
 
@@ -674,15 +587,11 @@ cursor: pointer;
   font-weight: 700;
 
   letter-spacing: 0.4px;
+  text-transform: uppercase;
 
-  text-transform:
-    uppercase;
+  color: var(--color-text-secondary);
 
-  color:
-    var(--color-text-secondary);
-
-  white-space:
-    nowrap;
+  white-space: nowrap;
 }
 
 
@@ -691,78 +600,61 @@ cursor: pointer;
 ========================================= */
 
 .project-table td {
-  padding: 16px 18px;
+  padding: 18px 22px;
 
-  border-bottom:
-    1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-border-light);
 
   font-size: 13px;
 
-  color:
-    var(--color-text-secondary);
+  color: var(--color-text-secondary);
 
-  vertical-align:
-    middle;
+  vertical-align: middle;
 }
-
 
 .project-table tbody tr {
-  transition:
-    background var(--transition-fast);
+  transition: background var(--transition-fast);
 }
-
 
 .project-table tbody tr:hover {
-  background:
-    var(--color-card-hover);
+  background: var(--color-card-hover);
 }
 
-
 .project-table tbody tr:last-child td {
-  border-bottom:
-    none;
+  border-bottom: none;
 }
 
 
 /* =========================================
-   PROJECT NAME CELL
+   IMPORTANT:
+   DO NOT ELLIPSIZE NORMAL DATA COLUMNS
 ========================================= */
 
-.project-name-cell {
-  display: flex;
+/*
+   Type, Domain, Agency and Cost should remain
+   readable when the user scrolls horizontally.
+*/
 
-  flex-direction:
-    column;
-
-  gap: 5px;
+.project-table td:nth-child(2),
+.project-table td:nth-child(3),
+.project-table td:nth-child(4),
+.project-table td:nth-child(7) {
+  overflow: visible;
+  text-overflow: clip;
 }
 
 
-.project-name-cell strong {
-  display: block;
+/* =========================================
+   COST
+========================================= */
 
-  max-width: 100%;
-
-  overflow: hidden;
-
-  text-overflow: ellipsis;
+.cost-cell {
+  display: inline-block;
 
   white-space: nowrap;
 
-  color:
-    var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
 
-  font-size: 14px;
-
-  font-weight: 600;
-}
-
-
-.project-name-cell span {
-  color:
-    var(--color-text-muted);
-
-  font-size: 12px;
+  color: var(--color-text-primary);
 }
 
 
@@ -777,18 +669,16 @@ cursor: pointer;
   display: inline-flex;
 
   align-items: center;
+  justify-content: center;
 
-  padding: 5px 10px;
+  padding: 6px 11px;
 
-  border-radius:
-    var(--radius-full);
+  border-radius: var(--radius-full);
 
   font-size: 11px;
-
   font-weight: 600;
 
-  white-space:
-    nowrap;
+  white-space: nowrap;
 }
 
 
@@ -797,47 +687,28 @@ cursor: pointer;
 ========================================= */
 
 .status-planned {
-  background:
-    var(--color-primary-soft);
-
-  color:
-    var(--color-primary-light);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-light);
 }
-
 
 .status-ongoing {
-  background:
-    var(--color-info-soft);
-
-  color:
-    var(--color-info);
+  background: var(--color-info-soft);
+  color: var(--color-info);
 }
-
 
 .status-completed {
-  background:
-    var(--color-success-soft);
-
-  color:
-    var(--color-success);
+  background: var(--color-success-soft);
+  color: var(--color-success);
 }
-
 
 .status-delayed {
-  background:
-    var(--color-danger-soft);
-
-  color:
-    var(--color-danger);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
 }
 
-
 .status-stalled {
-  background:
-    rgba(148, 163, 184, 0.12);
-
-  color:
-    var(--color-text-muted);
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--color-text-muted);
 }
 
 
@@ -847,41 +718,34 @@ cursor: pointer;
 
 .progress-cell {
   display: flex;
-
   align-items: center;
 
-  gap: 8px;
+  gap: 12px;
 
-  min-width: 0;
+  min-width: 150px;
 
-  max-width: 100%;
-
-  overflow: hidden;
+  overflow: visible;
 }
-
 
 .progress-bar {
-  flex: 1 1 auto;
+  flex: 0 0 110px;
 
-  min-width: 48px;
+  width: 110px;
+  min-width: 110px;
 
-  height: 7px;
+  height: 8px;
 
   overflow: hidden;
 
-  border-radius:
-    var(--radius-full);
+  border-radius: var(--radius-full);
 
-  background:
-    var(--color-input);
+  background: var(--color-input);
 }
-
 
 .progress-fill {
   height: 100%;
 
-  border-radius:
-    inherit;
+  border-radius: inherit;
 
   background:
     linear-gradient(
@@ -890,26 +754,22 @@ cursor: pointer;
       var(--color-primary-light)
     );
 
-  transition:
-    width var(--transition-normal);
+  transition: width var(--transition-normal);
 }
 
-
 .progress-cell span {
-  flex: 0 0 44px;
+  flex: 0 0 42px;
 
-  min-width: 44px;
+  min-width: 42px;
 
   font-size: 12px;
-
   font-weight: 600;
 
   text-align: right;
 
   font-variant-numeric: tabular-nums;
 
-  color:
-    var(--color-text-primary);
+  color: var(--color-text-primary);
 }
 
 
@@ -918,38 +778,23 @@ cursor: pointer;
 ========================================= */
 
 .health-good {
-  background:
-    var(--color-success-soft);
-
-  color:
-    var(--color-success);
+  background: var(--color-success-soft);
+  color: var(--color-success);
 }
-
 
 .health-warning {
-  background:
-    var(--color-warning-soft);
-
-  color:
-    var(--color-warning);
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
 }
-
 
 .health-critical {
-  background:
-    var(--color-danger-soft);
-
-  color:
-    var(--color-danger);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
 }
 
-
 .health-unknown {
-  background:
-    rgba(148, 163, 184, 0.12);
-
-  color:
-    var(--color-text-muted);
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--color-text-muted);
 }
 
 
@@ -958,38 +803,23 @@ cursor: pointer;
 ========================================= */
 
 .risk-high {
-  background:
-    var(--color-danger-soft);
-
-  color:
-    var(--color-danger);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
 }
-
 
 .risk-medium {
-  background:
-    var(--color-warning-soft);
-
-  color:
-    var(--color-warning);
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
 }
-
 
 .risk-low {
-  background:
-    var(--color-success-soft);
-
-  color:
-    var(--color-success);
+  background: var(--color-success-soft);
+  color: var(--color-success);
 }
 
-
 .risk-unknown {
-  background:
-    rgba(148, 163, 184, 0.12);
-
-  color:
-    var(--color-text-muted);
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--color-text-muted);
 }
 
 
@@ -998,29 +828,18 @@ cursor: pointer;
 ========================================= */
 
 .data-available {
-  background:
-    var(--color-primary-soft);
-
-  color:
-    var(--color-primary-light);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-light);
 }
-
 
 .data-pending {
-  background:
-    var(--color-warning-soft);
-
-  color:
-    var(--color-warning);
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
 }
 
-
 .data-unknown {
-  background:
-    rgba(148, 163, 184, 0.12);
-
-  color:
-    var(--color-text-muted);
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--color-text-muted);
 }
 
 
@@ -1031,25 +850,22 @@ cursor: pointer;
 .empty-table {
   padding: 50px !important;
 
-  text-align:
-    center;
+  text-align: center;
 
-  color:
-    var(--color-text-muted);
+  color: var(--color-text-muted);
 }
+
 
 /* =========================================
    CRITICAL RISK
 ========================================= */
 
 .critical-risk {
-  border-top-color:
-    var(--color-danger);
+  border-top-color: var(--color-danger);
 }
 
 .critical-risk span {
-  color:
-    var(--color-danger);
+  color: var(--color-danger);
 }
 
 
@@ -1067,115 +883,21 @@ cursor: pointer;
 
   padding: 5px 9px;
 
-  border-radius:
-    var(--radius-full);
+  border-radius: var(--radius-full);
 
-  background:
-    var(--color-primary-soft);
+  background: var(--color-primary-soft);
 
-  color:
-    var(--color-primary-light);
+  color: var(--color-primary-light);
 
   font-size: 11px;
   font-weight: 700;
 
-  font-variant-numeric:
-    tabular-nums;
+  font-variant-numeric: tabular-nums;
 }
 
 .risk-score.unknown {
-  background:
-    rgba(148, 163, 184, 0.12);
-
-  color:
-    var(--color-text-muted);
-}
-
-
-/* =========================================
-   RESPONSIVE
-========================================= */
-
-@media (max-width: 1400px) {
-
-  .financial-grid {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-  }
-
-}
-
-
-@media (max-width: 1200px) {
-
-  .summary-grid {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-  }
-
-    .dashboard-filters {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .filter-search {
-    grid-column: 1 / -1;
-  }
-
-  .reset-filter-button {
-    width: 100%;
-  }
-
-}
-
-
-@media (max-width: 768px) {
-
-  .dashboard-page-header {
-    flex-direction:
-      column;
-
-    align-items:
-      flex-start;
-  }
-
-
-  .summary-grid,
-  .financial-grid,
-  .risk-grid {
-    grid-template-columns:
-      1fr;
-  }
-
-    .dashboard-filters {
-    grid-template-columns: 1fr;
-
-    padding: 12px;
-  }
-
-  .filter-search {
-    grid-column: auto;
-  }
-
-  .dashboard-filters input,
-  .dashboard-filters select,
-  .reset-filter-button {
-    width: 100%;
-  }
-
-
-  .refresh-button {
-    width: 100%;
-
-    justify-content:
-      center;
-  }
-
-
-  .summary-card {
-    min-height:
-      auto;
-  }
-
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--color-text-muted);
 }
 
 
@@ -1185,7 +907,12 @@ cursor: pointer;
 
 .dashboard-filters {
   display: grid;
-  grid-template-columns: minmax(260px, 1.5fr) repeat(3, minmax(150px, 1fr)) auto;
+
+  grid-template-columns:
+    minmax(260px, 1.5fr)
+    repeat(3, minmax(150px, 1fr))
+    auto;
+
   gap: 12px;
 
   margin-bottom: 18px;
@@ -1195,9 +922,9 @@ cursor: pointer;
   border-radius: var(--radius-lg);
 
   background: var(--color-card);
+
   box-shadow: var(--shadow-sm);
 }
-
 
 .dashboard-filters input,
 .dashboard-filters select {
@@ -1210,7 +937,6 @@ cursor: pointer;
   border-radius: var(--radius-md);
 
   background: var(--color-input);
-
   color: var(--color-text-primary);
 
   font-family: inherit;
@@ -1224,11 +950,9 @@ cursor: pointer;
     box-shadow var(--transition-fast);
 }
 
-
 .dashboard-filters input::placeholder {
   color: var(--color-text-muted);
 }
-
 
 .dashboard-filters input:focus,
 .dashboard-filters select:focus {
@@ -1238,11 +962,9 @@ cursor: pointer;
     0 0 0 3px var(--color-primary-soft);
 }
 
-
 .dashboard-filters select {
   cursor: pointer;
 }
-
 
 .reset-filter-button {
   height: 42px;
@@ -1270,7 +992,6 @@ cursor: pointer;
     color var(--transition-fast);
 }
 
-
 .reset-filter-button:hover {
   background: var(--color-primary-soft);
 
@@ -1280,7 +1001,9 @@ cursor: pointer;
 }
 
 
-/* FILTER EMPTY STATE */
+/* =========================================
+   FILTER EMPTY STATE
+========================================= */
 
 .filter-empty-message {
   padding: 40px 20px !important;
@@ -1293,3 +1016,83 @@ cursor: pointer;
 }
 
 
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1400px) {
+  .financial-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+@media (max-width: 1200px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filter-search {
+    grid-column: 1 / -1;
+  }
+
+  .reset-filter-button {
+    width: 100%;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .dashboard-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .summary-grid,
+  .financial-grid,
+  .risk-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-filters {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .filter-search {
+    grid-column: auto;
+  }
+
+  .dashboard-filters input,
+  .dashboard-filters select,
+  .reset-filter-button {
+    width: 100%;
+  }
+
+  .refresh-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .summary-card {
+    min-height: auto;
+  }
+
+  /*
+     Keep the table wide on small screens.
+     User scrolls horizontally instead of
+     squeezing the columns.
+  */
+  .project-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .project-table {
+    min-width: 1700px;
+  }
+}

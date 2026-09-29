@@ -240,7 +240,6 @@
     var(--color-text-primary);
 }
 
-
 /* =========================================
    PROJECT TABLE WRAPPER
 ========================================= */
@@ -249,18 +248,18 @@
   width: 100%;
 
   overflow-x: auto;
+  overflow-y: hidden;
 
-  border:
-    1px solid var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
 
-  border-radius:
-    var(--radius-lg);
+  background: var(--color-card);
 
-  background:
-    var(--color-card);
+  box-shadow: var(--shadow-md);
 
-  box-shadow:
-    var(--shadow-md);
+  scrollbar-width: thin;
+
+  -webkit-overflow-scrolling: touch;
 }
 
 
@@ -271,125 +270,153 @@
 .projects-table {
   width: max-content;
 
-  min-width: 100%;
+  /*
+     Keep the table wide enough so the
+     columns don't get squeezed.
+  */
+  min-width: 1360px;
 
-  border-collapse:
-    collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 
   table-layout: fixed;
 }
 
+
+/* =========================================
+   COLUMN WIDTHS
+========================================= */
+
+/* Project */
 .projects-table th:nth-child(1),
 .projects-table td:nth-child(1) {
-  width: 260px;
+  width: 280px;
+  min-width: 280px;
 }
 
+
+/* Type */
 .projects-table th:nth-child(2),
 .projects-table td:nth-child(2) {
-  width: 120px;
+  width: 190px;
+  min-width: 190px;
 }
 
+
+/* Sector */
 .projects-table th:nth-child(3),
 .projects-table td:nth-child(3) {
-  width: 170px;
+  width: 180px;
+  min-width: 180px;
 }
 
+
+/* Implementing Agency */
 .projects-table th:nth-child(4),
 .projects-table td:nth-child(4) {
-  width: 240px;
+  width: 270px;
+  min-width: 270px;
 }
 
+
+/* Status */
 .projects-table th:nth-child(5),
 .projects-table td:nth-child(5) {
-  width: 120px;
+  width: 140px;
+  min-width: 140px;
 }
 
+
+/* Project Cost */
 .projects-table th:nth-child(6),
 .projects-table td:nth-child(6) {
-  width: 140px;
+  width: 160px;
+  min-width: 160px;
 }
 
+
+/* Progress */
 .projects-table th:nth-child(7),
 .projects-table td:nth-child(7) {
-  width: 180px;
+  width: 190px;
+  min-width: 190px;
 }
 
 
+/* =========================================
+   TABLE HEADER
+========================================= */
+
 .projects-table th {
-  padding:
-    16px
-    18px;
+  padding: 16px 22px;
 
-  background:
-    var(--color-table-header);
+  background: var(--color-table-header);
 
-  border-bottom:
-    1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
 
   text-align: left;
 
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
 
-  color:
-    var(--color-text-muted);
+  color: var(--color-text-secondary);
 
-  text-transform:
-    uppercase;
-
-  letter-spacing:
-    0.4px;
-
-  white-space:
-    nowrap;
-}
-
-
-.projects-table td:nth-child(2),
-.projects-table td:nth-child(3),
-.projects-table td:nth-child(4),
-.projects-table td:nth-child(6) {
-  overflow: hidden;
-
-  text-overflow: ellipsis;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 
   white-space: nowrap;
 }
 
 
-.projects-table td {
-  padding:
-    17px
-    18px;
+/* =========================================
+   TABLE CELLS
+========================================= */
 
-  border-bottom:
-    1px solid var(--color-border-light);
+.projects-table td {
+  padding: 18px 22px;
+
+  border-bottom: 1px solid var(--color-border-light);
 
   font-size: 14px;
 
-  color:
-    var(--color-text-secondary);
+  color: var(--color-text-secondary);
 
-  vertical-align:
-    middle;
+  vertical-align: middle;
+
+  white-space: nowrap;
 }
-
 
 .projects-table tbody tr {
-  transition:
-    background var(--transition-fast);
+  transition: background var(--transition-fast);
 }
-
 
 .projects-table tbody tr:hover {
-  background:
-    var(--color-card-hover);
+  background: var(--color-card-hover);
+}
+
+.projects-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 
-.projects-table tbody tr:last-child td {
-  border-bottom:
-    none;
+/* =========================================
+   NORMAL DATA COLUMNS
+========================================= */
+
+/*
+   Keep normal project information readable.
+   Do not aggressively truncate these columns.
+*/
+
+.projects-table td:nth-child(2),
+.projects-table td:nth-child(3),
+.projects-table td:nth-child(4),
+.projects-table td:nth-child(6) {
+  overflow: visible;
+
+  text-overflow: clip;
+
+  white-space: nowrap;
 }
 
 
@@ -397,55 +424,76 @@
    PROJECT NAME
 ========================================= */
 
+.project-name-cell {
+  width: 100%;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+
+  overflow: hidden;
+}
+
+
+/*
+   Keep project names compact like the Dashboard.
+
+   Long names stay on one line and are
+   shortened with ellipsis.
+*/
+
 .project-name-button {
   display: block;
 
-  max-width: 100%;
+  width: 100%;
+  max-width: 255px;
+
+  padding: 0;
 
   overflow: hidden;
+
+  border: none;
+
+  background: transparent;
+
+  color: var(--color-text-primary);
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+
+  text-align: left;
 
   text-overflow: ellipsis;
 
   white-space: nowrap;
 
-  border: none;
-
-  background:
-    transparent;
-
-  padding: 0;
-
-  color:
-    var(--color-text-primary);
-
-  font-size: 14px;
-  font-weight: 700;
-
   cursor: pointer;
 
-  text-align:
-    left;
-
-  transition:
-    color var(--transition-fast);
+  transition: color var(--transition-fast);
 }
-
 
 .project-name-button:hover {
-  color:
-    var(--color-primary-light);
+  color: var(--color-primary-light);
 }
 
+
+/* =========================================
+   PROJECT ID
+========================================= */
 
 .project-id {
   display: block;
 
   margin-top: 5px;
 
-  color:
-    var(--color-text-muted);
+  color: var(--color-text-muted);
 
   font-size: 12px;
+
+  white-space: nowrap;
 }
 
 
@@ -455,115 +503,20 @@
 
 .project-status {
   display: inline-flex;
+
   align-items: center;
+  justify-content: center;
 
-  padding:
-    5px
-    10px;
+  padding: 6px 11px;
 
-  border-radius:
-    var(--radius-full);
+  border-radius: var(--radius-full);
 
   font-size: 12px;
   font-weight: 600;
 
-  border:
-    1px solid transparent;
-}
+  white-space: nowrap;
 
-
-/* PLANNED */
-
-.status-planned {
-  background:
-    var(--color-info-soft);
-
-  color:
-    var(--color-info);
-
-  border-color:
-    rgba(
-      59,
-      130,
-      246,
-      0.25
-    );
-}
-
-
-/* ONGOING */
-
-.status-ongoing {
-  background:
-    var(--color-warning-soft);
-
-  color:
-    var(--color-warning);
-
-  border-color:
-    rgba(
-      245,
-      158,
-      11,
-      0.25
-    );
-}
-
-
-/* DELAYED */
-
-.status-delayed {
-  background:
-    var(--color-danger-soft);
-
-  color:
-    var(--color-danger);
-
-  border-color:
-    rgba(
-      239,
-      68,
-      68,
-      0.25
-    );
-}
-
-
-/* COMPLETED */
-
-.status-completed {
-  background:
-    var(--color-success-soft);
-
-  color:
-    var(--color-success);
-
-  border-color:
-    rgba(
-      34,
-      197,
-      94,
-      0.25
-    );
-}
-
-
-/* STALLED */
-
-.status-stalled {
-  background:
-    rgba(
-      148,
-      163,
-      184,
-      0.12
-    );
-
-  color:
-    var(--color-text-secondary);
-
-  border-color:
-    var(--color-border);
+  border: 1px solid transparent;
 }
 
 
@@ -573,48 +526,40 @@
 
 .project-progress {
   display: flex;
+
   align-items: center;
 
-  gap: 8px;
+  gap: 12px;
 
-  min-width: 0;
+  min-width: 150px;
 
-  max-width: 100%;
-
-  overflow: hidden;
+  overflow: visible;
 }
-
 
 .project-progress-bar {
-  flex: 1 1 auto;
+  flex: 0 0 110px;
 
-  min-width: 48px;
+  width: 110px;
+  min-width: 110px;
 
-  height: 7px;
+  height: 8px;
 
   overflow: hidden;
 
-  border-radius:
-    var(--radius-full);
+  border-radius: var(--radius-full);
 
-  background:
-    var(--color-border);
+  background: var(--color-border);
 }
-
 
 .project-progress-fill {
   height: 100%;
 
-  border-radius:
-    inherit;
+  border-radius: inherit;
 
-  background:
-    var(--color-primary);
+  background: var(--color-primary);
 
-  transition:
-    width var(--transition-normal);
+  transition: width var(--transition-normal);
 }
-
 
 .project-progress span {
   flex: 0 0 44px;
@@ -628,8 +573,7 @@
 
   font-variant-numeric: tabular-nums;
 
-  color:
-    var(--color-text-secondary);
+  color: var(--color-text-secondary);
 }
 
 
