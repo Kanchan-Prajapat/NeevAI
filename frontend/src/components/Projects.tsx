@@ -3,6 +3,10 @@ import {
   useState,
 } from "react";
 
+import {
+  useSearchParams,
+} from "react-router-dom";
+
 import AddProjectForm from "./AddProjectForm";
 
 import DashboardLayout from "./DashboardLayout";
@@ -14,6 +18,7 @@ import AddProjectSnapshotForm from "./AddProjectSnapshotForm";
 
 import {
   getProjectByProjectId,
+  deleteProject,
 } from "../services/projectService";
 
 import {
@@ -37,6 +42,11 @@ import "./Projects.css";
 
 
 function Projects() {
+
+  const [
+    searchParams,
+    setSearchParams,
+  ] = useSearchParams();
 
   /* ==============================
      STATE
@@ -106,7 +116,9 @@ const [
 
 
   const loadProjects =
-    async (): Promise<void> => {
+    async (
+      force = false
+    ): Promise<void> => {
 
       try {
 
@@ -116,7 +128,7 @@ const [
 
 
         const analytics =
-          await getDashboardAnalytics();
+          await getDashboardAnalytics(force);
 
 
         setProjects(
@@ -228,6 +240,24 @@ const [
     };
 
 
+  useEffect(() => {
+
+    const openProjectId =
+      searchParams.get("open");
+
+    if (!openProjectId || selectedProject) {
+      return;
+    }
+
+    handleOpenProject(openProjectId).then(() => {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete("open");
+      setSearchParams(nextParams, { replace: true });
+    });
+
+  }, [searchParams, selectedProject]);
+
+
   /* ==============================
      SEARCH FILTER
   ============================== */
@@ -327,7 +357,7 @@ const [
             false
           );
 
-          loadProjects();
+          loadProjects(true);
 
         }}
 
@@ -363,7 +393,7 @@ const [
 
         onSuccess={async () => {
 
-          await loadProjects();
+          await loadProjects(true);
 
 
           setShowEditProjectForm(
@@ -402,7 +432,7 @@ if (
       onSuccess={async () => {
         setShowAddSnapshotForm(false);
 
-        await loadProjects();
+        await loadProjects(true);
       }}
     />
   );
@@ -429,6 +459,21 @@ if (
 
   onAddSnapshot={() => {
     setShowAddSnapshotForm(true);
+  }}
+
+  onDelete={async () => {
+    if (!selectedProject.id) {
+      throw new Error(
+        "Project document ID is missing."
+      );
+    }
+
+    await deleteProject(
+      selectedProject.id
+    );
+
+    setSelectedProject(null);
+    await loadProjects(true);
   }}
 />
 
@@ -512,7 +557,7 @@ if (
           <button
             type="button"
             className="refresh-projects-button"
-            onClick={loadProjects}
+            onClick={() => loadProjects(true)}
           >
 
             <RefreshCw size={18} />
@@ -554,7 +599,7 @@ if (
 
             <button
               type="button"
-              onClick={loadProjects}
+              onClick={() => loadProjects(true)}
             >
               Retry
             </button>

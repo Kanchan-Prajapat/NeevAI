@@ -2,6 +2,12 @@ import type {
   ProjectSnapshot,
 } from "../../../shared/types";
 
+import {
+  CACHE_KEYS,
+  cachedFetch,
+  invalidatePortfolioCache,
+} from "./dataCache";
+
 
 // ==================================================
 // API BASE URL
@@ -133,11 +139,15 @@ export const createProjectSnapshot =
       );
     }
 
-    return (
+    const snapshotId = (
       data as {
         snapshotId: string;
       }
     ).snapshotId;
+
+    invalidatePortfolioCache();
+
+    return snapshotId;
   };
 
 
@@ -285,6 +295,8 @@ export const updateProjectSnapshot =
       response,
       "Update snapshot API"
     );
+
+    invalidatePortfolioCache();
   };
 
 
@@ -320,6 +332,8 @@ export const deleteProjectSnapshot =
       response,
       "Delete snapshot API"
     );
+
+    invalidatePortfolioCache();
   };
 
 
@@ -328,36 +342,44 @@ export const deleteProjectSnapshot =
 // ==================================================
 
 export const getAllProjectSnapshots =
-  async (): Promise<ProjectSnapshot[]> => {
+  async (
+    force = false
+  ): Promise<ProjectSnapshot[]> => {
 
-    const response =
-      await fetch(
-        `${API_BASE_URL}/api/snapshots`
-      );
+    return cachedFetch(
+      CACHE_KEYS.snapshots,
+      async () => {
+        const response =
+          await fetch(
+            `${API_BASE_URL}/api/snapshots`
+          );
 
-    const data =
-      await parseApiResponse(
-        response,
-        "Snapshots API"
-      );
+        const data =
+          await parseApiResponse(
+            response,
+            "Snapshots API"
+          );
 
-    const snapshots =
-      typeof data === "object" &&
-      data !== null &&
-      "snapshots" in data &&
-      Array.isArray(
-        (
-          data as {
-            snapshots?: unknown;
-          }
-        ).snapshots
-      )
-        ? (
-            data as {
-              snapshots: ProjectSnapshot[];
-            }
-          ).snapshots
-        : [];
+        const snapshots =
+          typeof data === "object" &&
+          data !== null &&
+          "snapshots" in data &&
+          Array.isArray(
+            (
+              data as {
+                snapshots?: unknown;
+              }
+            ).snapshots
+          )
+            ? (
+                data as {
+                  snapshots: ProjectSnapshot[];
+                }
+              ).snapshots
+            : [];
 
-    return snapshots;
+        return snapshots;
+      },
+      { force }
+    );
   };

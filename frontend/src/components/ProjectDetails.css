@@ -267,7 +267,8 @@
 }
 
 .edit-project-button,
-.add-snapshot-button {
+.add-snapshot-button,
+.delete-project-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -305,6 +306,36 @@
   background: var(--color-primary-soft);
   color: var(--color-primary-light);
   transform: translateY(-1px);
+}
+
+.delete-project-button {
+  border-color: var(--color-danger);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.delete-project-button:hover,
+.delete-project-button:disabled {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.delete-project-button:disabled {
+  cursor: wait;
+  transform: none;
+}
+
+.delete-project-error {
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 /* =========================================================
@@ -2233,7 +2264,8 @@
   }
 
   .edit-project-button,
-  .add-snapshot-button {
+  .add-snapshot-button,
+  .delete-project-button {
     flex: 1;
     min-height: 42px;
   }
