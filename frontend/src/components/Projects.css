@@ -291,98 +291,56 @@
 .projects-table th:nth-child(1),
 .projects-table td:nth-child(1) {
   width: 280px;
-<<<<<<< HEAD
   min-width: 280px;
-=======
-
-  min-width: 280px;
-
   max-width: 280px;
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
 }
 
 
 /* Type */
 .projects-table th:nth-child(2),
 .projects-table td:nth-child(2) {
-<<<<<<< HEAD
   width: 190px;
   min-width: 190px;
-=======
-  width: 120px;
-
-  min-width: 120px;
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
 }
 
 
 /* Sector */
 .projects-table th:nth-child(3),
 .projects-table td:nth-child(3) {
-<<<<<<< HEAD
   width: 180px;
   min-width: 180px;
-=======
-  width: 160px;
-
-  min-width: 160px;
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
 }
 
 
 /* Implementing Agency */
 .projects-table th:nth-child(4),
 .projects-table td:nth-child(4) {
-<<<<<<< HEAD
   width: 270px;
   min-width: 270px;
-=======
-  width: 200px;
-
-  min-width: 200px;
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
 }
 
 
 /* Status */
 .projects-table th:nth-child(5),
 .projects-table td:nth-child(5) {
-<<<<<<< HEAD
   width: 140px;
   min-width: 140px;
-=======
-  width: 120px;
-
-  min-width: 120px;
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
 }
 
 
 /* Project Cost */
 .projects-table th:nth-child(6),
 .projects-table td:nth-child(6) {
-<<<<<<< HEAD
   width: 160px;
   min-width: 160px;
-=======
-  width: 140px;
-
-  min-width: 140px;
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
 }
 
 
 /* Progress */
 .projects-table th:nth-child(7),
 .projects-table td:nth-child(7) {
-<<<<<<< HEAD
   width: 190px;
   min-width: 190px;
-=======
-  width: 170px;
-
-  min-width: 170px;
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
 }
 
 
@@ -404,31 +362,8 @@
 
   color: var(--color-text-secondary);
 
-<<<<<<< HEAD
   text-transform: uppercase;
   letter-spacing: 0.4px;
-=======
-  text-transform:
-    uppercase;
-
-  letter-spacing:
-    0.4px;
-
-  white-space:
-    nowrap;
-}
-
-
-.projects-table td:nth-child(1),
-.projects-table td:nth-child(2),
-.projects-table td:nth-child(3),
-.projects-table td:nth-child(4),
-.projects-table td:nth-child(6) {
-  overflow: hidden;
-
-  text-overflow: ellipsis;
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
-
   white-space: nowrap;
 }
 

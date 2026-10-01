@@ -475,56 +475,32 @@
 .project-table th:nth-child(1),
 .project-table td:nth-child(1) {
   width: 280px;
-<<<<<<< HEAD
   min-width: 280px;
-=======
-
-  min-width: 280px;
-
   max-width: 280px;
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
 }
 
 
 /* Type */
 .project-table th:nth-child(2),
 .project-table td:nth-child(2) {
-<<<<<<< HEAD
   width: 190px;
   min-width: 190px;
-=======
-  width: 120px;
-
-  min-width: 120px;
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
 }
 
 
 /* Domain */
 .project-table th:nth-child(3),
 .project-table td:nth-child(3) {
-<<<<<<< HEAD
   width: 180px;
   min-width: 180px;
-=======
-  width: 150px;
-
-  min-width: 150px;
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
 }
 
 
 /* Implementing Agency */
 .project-table th:nth-child(4),
 .project-table td:nth-child(4) {
-<<<<<<< HEAD
   width: 270px;
   min-width: 270px;
-=======
-  width: 200px;
-
-  min-width: 200px;
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
 }
 
 
@@ -533,64 +509,38 @@
 .project-table td:nth-child(5) {
   width: 140px;
   min-width: 140px;
-
-  min-width: 120px;
 }
 
 
 /* Progress */
 .project-table th:nth-child(6),
 .project-table td:nth-child(6) {
-<<<<<<< HEAD
   width: 190px;
   min-width: 190px;
-=======
-  width: 170px;
-
-  min-width: 170px;
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
 }
 
 
 /* Cost */
 .project-table th:nth-child(7),
 .project-table td:nth-child(7) {
-<<<<<<< HEAD
   width: 160px;
   min-width: 160px;
-=======
-  width: 130px;
-
-  min-width: 130px;
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
 }
 
 
 /* Risk */
 .project-table th:nth-child(8),
 .project-table td:nth-child(8) {
-<<<<<<< HEAD
   width: 120px;
   min-width: 120px;
-=======
-  width: 110px;
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
-
-  min-width: 110px;
 }
 
 
 /* Score */
 .project-table th:nth-child(9),
 .project-table td:nth-child(9) {
-<<<<<<< HEAD
   width: 110px;
   min-width: 110px;
-=======
-  width: 80px;
-
-  min-width: 80px;
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
 }
 
 
@@ -598,11 +548,6 @@
 .project-table th:nth-child(10),
 .project-table td:nth-child(10) {
   width: 150px;
-<<<<<<< HEAD
-  min-width: 150px;
-=======
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
-
   min-width: 150px;
 }
 
@@ -623,26 +568,7 @@
   overflow: hidden;
 }
 
-<<<<<<< HEAD
 .project-name-cell strong {
-=======
-
-/* =========================================
-   COST
-========================================= */
-
-.project-table td:nth-child(1),
-.project-table td:nth-child(2),
-.project-table td:nth-child(3),
-.project-table td:nth-child(4),
-.project-table td:nth-child(7) {
-  overflow: hidden;
-
-  text-overflow: ellipsis;
-}
-
-.cost-cell {
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
   display: block;
 
   /*
@@ -716,15 +642,10 @@
   background: var(--color-card-hover);
 }
 
-<<<<<<< HEAD
-=======
-
 .dashboard-project-row {
   cursor: pointer;
 }
 
-
->>>>>>> f6e7483e04e73310c2b811a7a2970a39d3c2771d
 .project-table tbody tr:last-child td {
   border-bottom: none;
 }
